@@ -1,3 +1,14 @@
+diff --git a/Config.xcconfig b/Config.xcconfig
+index a1ceba9..f971114 100644
+--- a/Config.xcconfig
++++ b/Config.xcconfig
+@@ -27,3 +27,6 @@ COPYRIGHT_NOTICE =
+ #include? "../../ConfigOverride.xcconfig"
+ #include? "../ConfigOverride.xcconfig"
+ #include? "ConfigOverride.xcconfig"
++
++// This checkout is an offline simulation experiment.
++SWIFT_ACTIVE_COMPILATION_CONDITIONS = $(inherited) YPSO_SIMULATION_ONLY
 diff --git a/Trio.xcodeproj/project.pbxproj b/Trio.xcodeproj/project.pbxproj
 index e6f6b54..286095d 100644
 --- a/Trio.xcodeproj/project.pbxproj
@@ -58,13 +69,50 @@ index e6f6b54..286095d 100644
  		3811DE0F25C9D37700A708ED /* Swinject */ = {
  			isa = XCSwiftPackageProductDependency;
  			package = 3811DE0E25C9D37700A708ED /* XCRemoteSwiftPackageReference "Swinject" */;
+diff --git a/Trio/Sources/APS/CGM/BluetoothTransmitter.swift b/Trio/Sources/APS/CGM/BluetoothTransmitter.swift
+index 99a2dc6..5cd0750 100644
+--- a/Trio/Sources/APS/CGM/BluetoothTransmitter.swift
++++ b/Trio/Sources/APS/CGM/BluetoothTransmitter.swift
+@@ -39,31 +39,7 @@ class BluetoothTransmitter: NSObject, CBCentralManagerDelegate, CBPeripheralDele
+     ///     - CBUUID_Receive: receive characteristic uuid as string, to which subscribe should be done
+     ///     - heartbeat  : function to call when data is received on the receive characteristic or when there's a disconnect
+     init(deviceAddress: String, servicesCBUUID: String, CBUUID_Receive: String, heartbeat: @escaping () -> Void) {
+-        servicesCBUUIDs = [CBUUID(string: servicesCBUUID)]
+-
+-        CBUUID_ReceiveCharacteristic = CBUUID_Receive
+-
+-        self.deviceAddress = deviceAddress
+-
+-        self.heartbeat = heartbeat
+-
+-        let cBCentralManagerOptionRestoreIdentifierKeyToUse = "Loop-" + deviceAddress
+-
+-        super.init()
+-
+-        debug(.deviceManager, "in initialize, creating centralManager for peripheral with address \(deviceAddress)")
+-
+-        centralManager = CBCentralManager(
+-            delegate: self,
+-            queue: nil,
+-            options: [
+-                CBCentralManagerOptionShowPowerAlertKey: true,
+-                CBCentralManagerOptionRestoreIdentifierKey: cBCentralManagerOptionRestoreIdentifierKeyToUse
+-            ]
+-        )
+-
+-        // connect to the device
+-        connect()
++        preconditionFailure("Bluetooth transmitters are unavailable in Ypso Trio SIM")
+     }
+ 
+     // MARK: - De-initialization
 diff --git a/Trio/Sources/APS/DeviceDataManager.swift b/Trio/Sources/APS/DeviceDataManager.swift
-index 2c19d22..2f319cc 100644
+index 2c19d22..d79fbaf 100644
 --- a/Trio/Sources/APS/DeviceDataManager.swift
 +++ b/Trio/Sources/APS/DeviceDataManager.swift
 @@ -1,3 +1,7 @@
-+#if !targetEnvironment(simulator)
-+#error("Ypso Trio experiment: iOS Simulator only until device isolation is validated")
++#if !YPSO_SIMULATION_ONLY
++#error("Ypso Trio requires the simulation-only build configuration")
 +#endif
 +import YpsoPumpSimulator
  import Combine
@@ -101,7 +149,7 @@ index 2c19d22..2f319cc 100644
      }
  }
  
-@@ -674,3 +684,19 @@ protocol PumpReservoirObserver {
+@@ -674,3 +684,24 @@ protocol PumpReservoirObserver {
  protocol PumpDeactivatedObserver {
      func pumpDeactivatedDidChange()
  }
@@ -120,6 +168,11 @@ index 2c19d22..2f319cc 100644
 +        state.tempBasalEnactmentShouldError = true
 +        manager.state = state
 +    }
++}
++
++/// Fixed policy, not a preference or remotely configurable feature flag.
++enum YpsoTrioSimulationPolicy {
++    static let isEnabled = true
 +}
 diff --git a/Trio/Sources/APS/Devices/DeviceCatalog.swift b/Trio/Sources/APS/Devices/DeviceCatalog.swift
 index 195eb8f..c00f01b 100644
@@ -257,16 +310,501 @@ index 195eb8f..c00f01b 100644
      }
  
      static func cgmEntry(id: String) -> CGMCatalogEntry? {
+diff --git a/Trio/Sources/APS/FetchGlucoseManager.swift b/Trio/Sources/APS/FetchGlucoseManager.swift
+index 92f0b0a..2e6b853 100644
+--- a/Trio/Sources/APS/FetchGlucoseManager.swift
++++ b/Trio/Sources/APS/FetchGlucoseManager.swift
+@@ -237,6 +237,13 @@ final class BaseFetchGlucoseManager: FetchGlucoseManager, Injectable {
+     }
+ 
+     func updateGlucoseSource(cgmGlucoseSourceType: CGMType, cgmGlucosePluginId: String, newManager: CGMManagerUI?) {
++        guard (cgmGlucoseSourceType == .none || cgmGlucoseSourceType == .simulator), newManager == nil else {
++            cgmManager = nil
++            glucoseSource = nil
++            self.cgmGlucoseSourceType = .none
++            return
++        }
++
+         // if changed, remove all calibrations
+         if self.cgmGlucoseSourceType != cgmGlucoseSourceType || self.cgmGlucosePluginId != cgmGlucosePluginId {
+             removeCalibrations()
+@@ -286,12 +293,7 @@ final class BaseFetchGlucoseManager: FetchGlucoseManager, Injectable {
+ 
+     /// Upload cgmManager from raw value
+     func cgmManagerFromRawValue(_ rawValue: [String: Any]) -> CGMManagerUI? {
+-        guard let rawState = rawValue["state"] as? CGMManager.RawStateValue,
+-              let Manager = pluginCGMManager.getCGMManagerTypeByIdentifier(cgmGlucosePluginId)
+-        else {
+-            return nil
+-        }
+-        return Manager.init(rawState: rawState)
++        return nil // Never restore a hardware CGM in this experimental app.
+     }
+ 
+     private func glucoseStoreAndHeartDecision(syncDate: Date, glucose: [BloodGlucose]) async throws {
+diff --git a/Trio/Sources/Modules/Onboarding/View/OnboardingRootView.swift b/Trio/Sources/Modules/Onboarding/View/OnboardingRootView.swift
+index c8a3ff2..d202f95 100644
+--- a/Trio/Sources/Modules/Onboarding/View/OnboardingRootView.swift
++++ b/Trio/Sources/Modules/Onboarding/View/OnboardingRootView.swift
+@@ -801,13 +801,8 @@ struct OnboardingNavigationButtons: View {
+             }
+ 
+         case .bluetooth:
+-            if let next = currentStep.next {
+-                if state.bluetoothManager.bluetoothAuthorization != .authorized {
+-                    state.shouldDisplayBluetoothRequestAlert = true
+-                } else {
+-                    currentStep = next
+-                }
+-            }
++            // This offline app does not request or need Bluetooth permission.
++            if let next = currentStep.next { currentStep = next }
+ 
+         case .completed:
+             state.saveOnboardingData()
+diff --git a/Trio/Sources/Modules/Onboarding/View/OnboardingSteps/BluetoothPermissionStepView.swift b/Trio/Sources/Modules/Onboarding/View/OnboardingSteps/BluetoothPermissionStepView.swift
+index f857425..fe0bd7c 100644
+--- a/Trio/Sources/Modules/Onboarding/View/OnboardingSteps/BluetoothPermissionStepView.swift
++++ b/Trio/Sources/Modules/Onboarding/View/OnboardingSteps/BluetoothPermissionStepView.swift
+@@ -1,163 +1,14 @@
+-//
+-//  BluetoothPermissionStepView.swift
+-//  Trio
+-//
+-//  Created by Cengiz Deniz on 18.04.25.
+-//
+-import CoreBluetooth
+ import SwiftUI
+-import UIKit
+ 
+ struct BluetoothPermissionStepView: View {
+     @Bindable var state: Onboarding.StateModel
+     var bluetoothManager: BluetoothStateManager
+     var currentStep: Binding<OnboardingStep>
+-
+     var body: some View {
+         VStack(alignment: .leading, spacing: 20) {
+-            Text("Enable device connectivity")
+-                .font(.title3)
+-                .bold()
+-                .multilineTextAlignment(.leading)
+-
+-            Text("Trio requires Bluetooth to function as a (hybrid) closed‑loop system.")
+-                .font(.body)
+-                .multilineTextAlignment(.leading)
+-                .foregroundColor(Color.secondary)
+-                .padding(.bottom)
+-
+-            VStack(alignment: .leading, spacing: 20) {
+-                HStack(spacing: 12) {
+-                    Image(systemName: "keyboard.onehanded.left.fill")
+-                        .font(.system(size: 24))
+-                        .foregroundColor(Color.bgDarkBlue)
+-                        .frame(width: 44, height: 44)
+-                        .background(Circle().fill(Color.primary.opacity(0.8)))
+-                    Text(
+-                        "Connect to your insulin pump so Trio can send dosing commands and stay active in the background."
+-                    )
+-                    .font(.body)
+-                    .foregroundColor(.primary)
+-                }
+-
+-                HStack(spacing: 12) {
+-                    Image(systemName: "sensor.tag.radiowaves.forward.fill")
+-                        .font(.system(size: 24))
+-                        .foregroundColor(Color.bgDarkBlue)
+-                        .frame(width: 44, height: 44)
+-                        .background(Circle().fill(Color.primary.opacity(0.8)))
+-                    Text("Receive glucose readings every 5 minutes from your CGM to keep the loop running.")
+-                        .font(.body)
+-                        .foregroundColor(.primary)
+-                }
+-            }
+-
+-            Text("You can change these permissions any time in the iOS Settings app.")
+-                .font(.footnote)
+-                .multilineTextAlignment(.leading)
+-                .foregroundColor(Color.secondary)
+-                .padding(.top)
+-        }
+-        .padding(.horizontal)
+-        .background(
+-            SystemAlert(
+-                isPresented: $state.shouldDisplayBluetoothRequestAlert,
+-                title: String(localized: "“Trio” Would Like to Use Bluetooth"),
+-                message: String(
+-                    localized: "Bluetooth is used to communicate with insulin pump and continuous glucose monitor devices."
+-                ),
+-                allowTitle: String(localized: "Allow"),
+-                denyTitle: String(localized: "Don’t Allow"),
+-                onAllow: {
+-                    /// Requests Bluetooth permission and updates onboarding state based on the system’s response.
+-                    /// It calls `authorizeBluetooth`, which initializes `CBCentralManager` and triggers the
+-                    /// native system permission prompt (if not previously shown).
+-                    ///
+-                    /// The resulting authorization is checked — if the user grants permission (`.authorized`),
+-                    /// `hasBluetoothGranted` is set to `true`, allowing the app to proceed with Bluetooth operations.
+-                    /// Otherwise, it remains `false`, and the user can be guided to manually enable Bluetooth later.
+-                    ///
+-                    /// This ensures the app only treats Bluetooth as granted when the system confirms it.
+-                    bluetoothManager.authorizeBluetooth { auth in
+-                        DispatchQueue.main.async {
+-                            state.hasBluetoothGranted = (auth == .authorized)
+-                            state.shouldDisplayBluetoothRequestAlert = false
+-                            if let next = currentStep.wrappedValue.next {
+-                                currentStep.wrappedValue = next
+-                            }
+-                        }
+-                    }
+-                },
+-                onDeny: {
+-                    /// Requests Bluetooth permission and updates onboarding state based on the system’s response.
+-                    /// Although `authorizeBluetooth` is still called (to ensure iOS shows the app under
+-                    /// Settings > Privacy & Security > Bluetooth), the app forcibly sets `hasBluetoothGranted` to `false`
+-                    /// regardless of the system-reported authorization status.
+-                    ///
+-                    /// This ensures the app tracks user intent correctly (denial),
+-                    /// while still letting the system recognize Bluetooth usage,
+-                    /// so users can later re-enable it manually in iOS Settings.
+-                    bluetoothManager.authorizeBluetooth { _ in
+-                        DispatchQueue.main.async {
+-                            state.hasBluetoothGranted = false
+-                            state.shouldDisplayBluetoothRequestAlert = false
+-                            if let next = currentStep.wrappedValue.next {
+-                                currentStep.wrappedValue = next
+-                            }
+-                        }
+-                    }
+-                }
+-            )
+-        )
+-    }
+-}
+-
+-/// Presents a real UIAlertController, pinned to the system's own style
+-///
+-/// Why use this?
+-/// SwiftUI’s built‑in .alert will always inherit the color scheme of its host view (in our case, we have forced .dark for the entire onboarding screen).
+-/// There’s no way to tell SwiftUI “use the system setting here only for this one alert.”
+-/// The workaround is to present a plain UIKit UIAlertController ourself, in its own representable, and explicitly tell it to use the system’s interface style instead of inheriting our forced dark mode.
+-/// We enforce usage of the system's interface style by setting its overrideUserInterfaceStyle to whatever the device is actually using (.light or .dark).
+-struct SystemAlert: UIViewControllerRepresentable {
+-    @Binding var isPresented: Bool
+-
+-    let title: String
+-    let message: String
+-    let allowTitle: String
+-    let denyTitle: String
+-
+-    /// called after Allow or Deny
+-    let onAllow: () -> Void
+-    let onDeny: () -> Void
+-
+-    func makeUIViewController(context _: Context) -> UIViewController {
+-        // empty container
+-        UIViewController()
+-    }
+-
+-    func updateUIViewController(_ uiVC: UIViewController, context _: Context) {
+-        guard isPresented, uiVC.presentedViewController == nil else { return }
+-
+-        let alert = UIAlertController(
+-            title: title,
+-            message: message,
+-            preferredStyle: .alert
+-        )
+-
+-        // force it back to the "real" system style
+-        let systemStyle = UIScreen.main.traitCollection.userInterfaceStyle
+-        alert.overrideUserInterfaceStyle = systemStyle
+-
+-        alert.addAction(.init(title: denyTitle, style: .cancel) { _ in
+-            isPresented = false
+-            onDeny()
+-        })
+-        alert.addAction(.init(title: allowTitle, style: .default) { _ in
+-            isPresented = false
+-            onAllow()
+-        })
+-
+-        uiVC.present(alert, animated: true)
++            Text("Offline simulation").font(.title2).bold()
++            Text("This experimental app uses a simulated pump and synthetic glucose data. Bluetooth is disabled; no pump or sensor will be connected.")
++            Text("Apple Health export is disabled. Do not enter your therapy settings or use this app for treatment.")
++        }.padding()
+     }
+ }
+diff --git a/Trio/Sources/Modules/Onboarding/View/OnboardingSteps/WelcomeStepView.swift b/Trio/Sources/Modules/Onboarding/View/OnboardingSteps/WelcomeStepView.swift
+index d144217..13b5046 100644
+--- a/Trio/Sources/Modules/Onboarding/View/OnboardingSteps/WelcomeStepView.swift
++++ b/Trio/Sources/Modules/Onboarding/View/OnboardingSteps/WelcomeStepView.swift
+@@ -10,25 +10,25 @@ struct WelcomeStepView: View {
+             Spacer(minLength: 10)
+ 
+             VStack(alignment: .leading, spacing: 20) {
+-                Text("Hi there!")
++                Text("Ypso Trio — SIMULATION ONLY")
+                     .font(.title2)
+                     .fontWeight(.bold)
+                     .multilineTextAlignment(.center)
+                     .accessibilityAddTraits(.isHeader)
+ 
+                 Text(
+-                    "Welcome to Trio — an automated insulin delivery system for iOS based on the OpenAPS algorithm with adaptations."
++                    "This is an experimental Trio app with an in-memory YpsoPump simulator. It cannot control a real pump."
+                 )
+                 .multilineTextAlignment(.leading)
+                 .foregroundColor(.secondary)
+ 
+                 Text(
+-                    "Trio is designed to help manage your diabetes efficiently. To get the most out of the app, we'll guide you through setting up some essential parameters."
++                    "All readings and settings in this app are for testing only. Leave your existing treatment app and pump settings unchanged."
+                 )
+                 .multilineTextAlignment(.leading)
+                 .foregroundColor(.secondary)
+ 
+-                Text("Let's go through a few quick steps to ensure Trio works optimally for you.")
++                Text("Use synthetic values for this simulation. This app is not for treatment.")
+                     .multilineTextAlignment(.leading)
+                     .foregroundColor(.primary)
+                     .bold()
+diff --git a/Trio/Sources/Services/Bluetooth/BluetoothStateManager.swift b/Trio/Sources/Services/Bluetooth/BluetoothStateManager.swift
+index 2e30f21..81bbdde 100644
+--- a/Trio/Sources/Services/Bluetooth/BluetoothStateManager.swift
++++ b/Trio/Sources/Services/Bluetooth/BluetoothStateManager.swift
+@@ -1,106 +1,21 @@
+-import CoreBluetooth
++import Foundation
+ import LoopKit
+ import LoopKitUI
+ import Swinject
+ 
+ protocol BluetoothStateManager: BluetoothProvider {}
+ 
++/// Offline provider: never creates a Bluetooth central or requests permission.
+ public class BaseBluetoothStateManager: NSObject, BluetoothStateManager, Injectable {
+-    private var completion: ((BluetoothAuthorization) -> Void)?
+-    private var centralManager: CBCentralManager?
+-    private var bluetoothObservers = WeakSynchronizedSet<BluetoothObserver>()
+-
+     init(resolver: Resolver) {
+         super.init()
+         injectServices(resolver)
+-        if bluetoothAuthorization != .notDetermined {
+-            centralManager = CBCentralManager(delegate: self, queue: nil)
+-        }
+-    }
+-
+-    public var bluetoothAuthorization: BluetoothAuthorization {
+-        BluetoothAuthorization(CBCentralManager.authorization)
+     }
+-
+-    public var bluetoothState: BluetoothState {
+-        guard let centralManager = centralManager else {
+-            return .unknown
+-        }
+-        return BluetoothState(centralManager.state)
+-    }
+-
++    public var bluetoothAuthorization: BluetoothAuthorization { .denied }
++    public var bluetoothState: BluetoothState { .poweredOff }
+     public func authorizeBluetooth(_ completion: @escaping (BluetoothAuthorization) -> Void) {
+-        guard centralManager == nil else {
+-            completion(bluetoothAuthorization)
+-            return
+-        }
+-        self.completion = completion
+-        centralManager = CBCentralManager(delegate: self, queue: nil)
+-    }
+-
+-    public func addBluetoothObserver(_ observer: BluetoothObserver, queue: DispatchQueue = .main) {
+-        bluetoothObservers.insert(observer, queue: queue)
+-    }
+-
+-    public func removeBluetoothObserver(_ observer: BluetoothObserver) {
+-        bluetoothObservers.removeElement(observer)
+-    }
+-}
+-
+-// MARK: - CBCentralManagerDelegate
+-
+-extension BaseBluetoothStateManager: CBCentralManagerDelegate {
+-    public func centralManagerDidUpdateState(_ central: CBCentralManager) {
+-        if let completion = completion {
+-            completion(bluetoothAuthorization)
+-            self.completion = nil
+-        }
+-        bluetoothObservers.forEach { $0.bluetoothDidUpdateState(BluetoothState(central.state)) }
+-    }
+-}
+-
+-// MARK: - BluetoothAuthorization
+-
+-private extension BluetoothAuthorization {
+-    init(_ authorization: CBManagerAuthorization) {
+-        switch authorization {
+-        case .notDetermined:
+-            self = .notDetermined
+-        case .restricted:
+-            self = .restricted
+-        case .denied:
+-            self = .denied
+-        case .allowedAlways:
+-            self = .authorized
+-        @unknown default:
+-            self = .notDetermined
+-        }
+-    }
+-}
+-
+-// MARK: - BluetoothState
+-
+-private extension BluetoothState {
+-    init(_ state: CBManagerState) {
+-        switch state {
+-        case .unknown:
+-            self = .unknown
+-        case .resetting:
+-            self = .resetting
+-        case .unsupported:
+-            #if IOS_SIMULATOR
+-                self = .poweredOn // Simulator reports unsupported, but pretend it is powered on
+-            #else
+-                self = .unsupported
+-            #endif
+-        case .unauthorized:
+-            self = .unauthorized
+-        case .poweredOff:
+-            self = .poweredOff
+-        case .poweredOn:
+-            self = .poweredOn
+-        @unknown default:
+-            self = .unknown
+-        }
++        completion(.denied)
+     }
++    public func addBluetoothObserver(_ observer: BluetoothObserver, queue: DispatchQueue = .main) {}
++    public func removeBluetoothObserver(_ observer: BluetoothObserver) {}
+ }
+diff --git a/Trio/Sources/Services/HealthKit/HealthKitManager.swift b/Trio/Sources/Services/HealthKit/HealthKitManager.swift
+index bc403cd..72766a4 100644
+--- a/Trio/Sources/Services/HealthKit/HealthKitManager.swift
++++ b/Trio/Sources/Services/HealthKit/HealthKitManager.swift
+@@ -120,6 +120,7 @@ final class BaseHealthKitManager: HealthKitManager, Injectable {
+     }
+ 
+     init(resolver: Resolver) {
++        if YpsoTrioSimulationPolicy.isEnabled { return }
+         injectServices(resolver)
+ 
+         registerUploadControllers()
+@@ -154,11 +155,13 @@ final class BaseHealthKitManager: HealthKitManager, Injectable {
+     }
+ 
+     func checkWriteToHealthPermissions(objectTypeToHealthStore: HKObjectType) -> Bool {
+-        healthKitStore.authorizationStatus(for: objectTypeToHealthStore) == .sharingAuthorized
++        guard !YpsoTrioSimulationPolicy.isEnabled else { return false }
++        return healthKitStore.authorizationStatus(for: objectTypeToHealthStore) == .sharingAuthorized
+     }
+ 
+     var hasGrantedFullWritePermissions: Bool {
+-        Set(AppleHealthConfig.writePermissions.map { healthKitStore.authorizationStatus(for: $0) })
++        guard !YpsoTrioSimulationPolicy.isEnabled else { return false }
++        return Set(AppleHealthConfig.writePermissions.map { healthKitStore.authorizationStatus(for: $0) })
+             .intersection([.sharingDenied, .notDetermined])
+             .isEmpty
+     }
+@@ -168,6 +171,7 @@ final class BaseHealthKitManager: HealthKitManager, Injectable {
+     }
+ 
+     func requestPermission() async throws -> Bool {
++        guard !YpsoTrioSimulationPolicy.isEnabled else { return false }
+         guard isAvailableOnCurrentDevice else {
+             throw HKError.notAvailableOnCurrentDevice
+         }
+@@ -189,6 +193,7 @@ final class BaseHealthKitManager: HealthKitManager, Injectable {
+     // Glucose Upload
+ 
+     func uploadGlucose() async {
++        guard !YpsoTrioSimulationPolicy.isEnabled else { return }
+         do {
+             let glucose = try await glucoseStorage.getGlucoseNotYetUploadedToHealth()
+             await uploadGlucose(glucose)
+@@ -204,6 +209,7 @@ final class BaseHealthKitManager: HealthKitManager, Injectable {
+     }
+ 
+     func uploadGlucose(_ glucose: [BloodGlucose]) async {
++        guard !YpsoTrioSimulationPolicy.isEnabled else { return }
+         guard settingsManager.settings.useAppleHealth,
+               let sampleType = AppleHealthConfig.healthBGObject,
+               checkWriteToHealthPermissions(objectTypeToHealthStore: sampleType),
+@@ -273,6 +279,7 @@ final class BaseHealthKitManager: HealthKitManager, Injectable {
+     // Carbs Upload
+ 
+     func uploadCarbs() async {
++        guard !YpsoTrioSimulationPolicy.isEnabled else { return }
+         do {
+             let carbs = try await carbsStorage.getCarbsNotYetUploadedToHealth()
+             await uploadCarbs(carbs)
+@@ -285,6 +292,7 @@ final class BaseHealthKitManager: HealthKitManager, Injectable {
+     }
+ 
+     func uploadCarbs(_ carbs: [CarbsEntry]) async {
++        guard !YpsoTrioSimulationPolicy.isEnabled else { return }
+         guard settingsManager.settings.useAppleHealth,
+               let carbSampleType = AppleHealthConfig.healthCarbObject,
+               let fatSampleType = AppleHealthConfig.healthFatObject,
+@@ -396,6 +404,7 @@ final class BaseHealthKitManager: HealthKitManager, Injectable {
+     // Insulin Upload
+ 
+     func uploadInsulin() async {
++        guard !YpsoTrioSimulationPolicy.isEnabled else { return }
+         do {
+             let events = try await pumpHistoryStorage.getPumpHistoryNotYetUploadedToHealth()
+             await uploadInsulin(events)
+@@ -408,6 +417,7 @@ final class BaseHealthKitManager: HealthKitManager, Injectable {
+     }
+ 
+     func uploadInsulin(_ insulinEvents: [PumpHistoryEvent]) async {
++        guard !YpsoTrioSimulationPolicy.isEnabled else { return }
+         guard settingsManager.settings.useAppleHealth,
+               let sampleType = AppleHealthConfig.healthInsulinObject,
+               checkWriteToHealthPermissions(objectTypeToHealthStore: sampleType),
+@@ -661,6 +671,7 @@ final class BaseHealthKitManager: HealthKitManager, Injectable {
+     // Delete Glucose/Carbs/Insulin
+ 
+     func deleteGlucose(syncID: String) async {
++        guard !YpsoTrioSimulationPolicy.isEnabled else { return }
+         guard settingsManager.settings.useAppleHealth,
+               let sampleType = AppleHealthConfig.healthBGObject,
+               checkWriteToHealthPermissions(objectTypeToHealthStore: sampleType)
+@@ -681,6 +692,7 @@ final class BaseHealthKitManager: HealthKitManager, Injectable {
+     }
+ 
+     func deleteMealData(byID id: String, sampleType: HKSampleType) async {
++        guard !YpsoTrioSimulationPolicy.isEnabled else { return }
+         guard settingsManager.settings.useAppleHealth else { return }
+ 
+         let predicate = HKQuery.predicateForObjects(
+@@ -698,6 +710,7 @@ final class BaseHealthKitManager: HealthKitManager, Injectable {
+     }
+ 
+     func deleteInsulin(syncID: String) async {
++        guard !YpsoTrioSimulationPolicy.isEnabled else { return }
+         guard settingsManager.settings.useAppleHealth,
+               let sampleType = AppleHealthConfig.healthInsulinObject,
+               checkWriteToHealthPermissions(objectTypeToHealthStore: sampleType)
 diff --git a/TrioTests/DeviceCatalogTests.swift b/TrioTests/DeviceCatalogTests.swift
-index d0dfacb..bbc990e 100644
+index d0dfacb..a97fc6b 100644
 --- a/TrioTests/DeviceCatalogTests.swift
 +++ b/TrioTests/DeviceCatalogTests.swift
-@@ -1,3 +1,4 @@
+@@ -1,3 +1,5 @@
++import Swinject
 +import MockKit
  import DanaKit
  import Foundation
  import LoopKitUI
-@@ -298,3 +299,27 @@ import UIKit
+@@ -298,3 +300,58 @@ import UIKit
          }
      }
  }
@@ -292,5 +830,36 @@ index d0dfacb..bbc990e 100644
 +        if case .suspended = mock.state.suspendState {} else {
 +            Issue.record("Simulator must start suspended")
 +        }
++    }
++}
++
++
++@Suite("Ypso offline services") struct YpsoTrioOfflineTests {
++    @Test func bluetoothProviderNeverAuthorizesHardware() {
++        let provider = BaseBluetoothStateManager(resolver: Container())
++        #expect(provider.bluetoothAuthorization == .denied)
++        #expect(provider.bluetoothState == .poweredOff)
++        var completed = false
++        provider.authorizeBluetooth { authorization in
++            #expect(authorization == .denied)
++            completed = true
++        }
++        #expect(completed)
++    }
++
++    @Test func mockRejectsDeliveryCommands() throws {
++        let mock = MockPumpManager()
++        try YpsoTrioSimulatorBridge.configure(mock)
++        var basalRejected = false
++        mock.enactTempBasal(unitsPerHour: 1, for: 60) { error in
++            basalRejected = error != nil
++        }
++        #expect(basalRejected)
++        var bolusRejected = false
++        mock.enactBolus(units: 1, activationType: .manualNoRecommendation) { error in
++            bolusRejected = error != nil
++        }
++        #expect(bolusRejected)
++        #expect(YpsoTrioSimulationPolicy.isEnabled)
 +    }
 +}

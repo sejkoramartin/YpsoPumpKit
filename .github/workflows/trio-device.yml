@@ -1,0 +1,42 @@
+name: Trio unsigned iPhone build
+on:
+  workflow_dispatch:
+permissions:
+  contents: read
+concurrency:
+  group: trio-device
+  cancel-in-progress: true
+jobs:
+  device:
+    runs-on: macos-26
+    timeout-minutes: 60
+    steps:
+      - uses: actions/checkout@d23441a48e516b6c34aea4fa41551a30e30af803 # v6
+        with:
+          persist-credentials: false
+      - name: Select upstream build toolchain
+        run: sudo xcode-select --switch /Applications/Xcode_26.5.app/Contents/Developer
+      - name: Prepare isolated Trio
+        run: bash Scripts/prepare-trio-ci.sh "$RUNNER_TEMP/ypso-trio"
+      - name: Compile Release for iPhone without signing or installation
+        shell: bash
+        run: |
+          set -o pipefail
+          cd "$RUNNER_TEMP/ypso-trio/Trio"
+          xcodebuild build \
+            -workspace Trio.xcworkspace -scheme Trio \
+            -configuration Release -destination 'generic/platform=iOS' \
+            -derivedDataPath "$RUNNER_TEMP/TrioDeviceDerivedData" \
+            -skipPackagePluginValidation -skipMacroValidation \
+            CODE_SIGNING_ALLOWED=NO COMPILER_INDEX_STORE_ENABLE=NO \
+            2>&1 | tee "$RUNNER_TEMP/trio-device-build.log"
+      - name: Surface errors
+        if: failure()
+        run: rg -n 'error:|BUILD FAILED' "$RUNNER_TEMP/trio-device-build.log" | tail -60 || true
+      - name: Upload compilation log
+        if: always()
+        uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02 # v4
+        with:
+          name: trio-unsigned-device-log
+          path: ${{ runner.temp }}/trio-device-build.log
+          retention-days: 7

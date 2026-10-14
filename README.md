@@ -31,7 +31,7 @@ GitHub Actions provides macOS/Xcode:
 - **Trio simulator build and tests** is manually started in Actions. It fetches pinned Trio, applies the simulator-only patch, runs isolation tests and attempts an app launch with a screenshot. Diagnostics are downloadable as an artifact.
 - The historical **Loop simulator build** workflow is disabled.
 
-The Trio integration is an experimental bootstrap bridge into its existing `MockPumpManager`, not a complete `YpsoPumpManager`. A compile-time guard currently rejects physical iPhone builds. A successful build does not establish UI behavior or physical pump compatibility. See [Trio instructions](Documentation/TRIO.md).
+The Trio integration is an experimental bootstrap bridge into its existing `MockPumpManager`, not a complete `YpsoPumpManager`. A compile-time guard requires the fixed simulation configuration. An unsigned iPhone workflow checks device compilation; no signing or TestFlight upload is performed. A successful build does not establish UI behavior or physical pump compatibility. See [Trio instructions](Documentation/TRIO.md).
 
 ## Protocol uncertainty is explicit
 

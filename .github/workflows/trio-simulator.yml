@@ -43,6 +43,7 @@ jobs:
             -derivedDataPath "$RUNNER_TEMP/TrioDerivedData" \
             -resultBundlePath "$RUNNER_TEMP/TrioTests.xcresult" \
             -only-testing:TrioTests/YpsoTrioIsolationTests \
+            -only-testing:TrioTests/YpsoTrioOfflineTests \
             -skipPackagePluginValidation -skipMacroValidation \
             CODE_SIGN_IDENTITY=- CODE_SIGN_STYLE=Manual DEVELOPMENT_TEAM= \
             PROVISIONING_PROFILE_SPECIFIER= \

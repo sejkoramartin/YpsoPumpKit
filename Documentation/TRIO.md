@@ -16,13 +16,23 @@ V GitHub Actions spusťte **Trio simulator build and tests**. Workflow připrav�
 
 Používá Xcode 26.5 podle upstream build workflow a ad-hoc podpis v simulátoru. Nepotřebuje Apple secrets. Zachovává deployment target Tria (iOS 17.6), nepřepisuje globálně verze závislostí. Zdrojová kontrola nenahrazuje kompilaci a runtime testy. Plná upstream sada testů očekává skutečné pumpy v katalogu a není testovací sadou této omezené varianty.
 
-## iPhone a TestFlight — další etapa
+## iPhone a TestFlight — příprava
 
-Uživatel má placený Apple Developer účet. Tento první prototyp se přesto smí kompilovat pouze pro iOS Simulator (`#error` pro fyzické zařízení). Nenahrává IPA ani nic do App Store Connect.
+Varianta pro iPhone má pevný příznak `YPSO_SIMULATION_ONLY`. Bez něj kompilace skončí chybou. Katalog a obnova managerů stále povolují pouze MockPumpManager. Bluetooth provider nevytváří CBCentralManager a zamítá žádost o autorizaci; konstrukce BluetoothTransmitter selže před jakoukoli komunikací. Obnova hardwarového CGM vrací nil. Úvodní nastavení vysvětluje simulaci a nepoptává Bluetooth oprávnění.
 
-Před TestFlight je nutné ověřit izolaci na zařízení, nahradit omezení cílové platformy kontrolami konfigurace pro čistě simulovanou aplikaci, zachovat samostatné bundle ID a app group a připravit podepsané sestavení. Změna nesmí umožnit fyzický transport pumpy. Následně bude potřeba nastavit tým, identifikátory a podpisová oprávnění podle [Trio Browser Build](https://triodocs.org/install/build/browser/browser-build-overview/). Soukromé klíče a hesla patří do GitHub Secrets, nikoli do chatu nebo zdrojového kódu. Standardní workflow Tria nelze bez úprav považovat za bezpečnou distribuční cestu pro tuto experimentální variantu.
+Apple Health uploady, mazání a žádosti o oprávnění jsou blokované pevnou politikou simulace, aby se testovací data nedostala do skutečného zdravotního úložiště. To není audit veškeré síťové aktivity upstream aplikace: např. obecné služby Tria zůstávají ve zdrojích. Pro první test používejte čerstvou instalaci, pouze syntetické hodnoty a žádné účty vzdálených zdravotních služeb.
 
-CamAPS FX ani konfigurace fyzické YpsoPump se nemění. Trio YpsoPump standardně nepodporuje.
+Workflow **Trio unsigned iPhone build** ověřuje Release kompilaci pro fyzickou platformu bez podpisu, instalace a uploadu. Úspěch tohoto buildu není důkazem běhu na iPhonu. Simulator workflow ověřuje katalog, syntetickou telemetrii, odmítnutí dávkování a offline Bluetooth provider.
+
+Konfiguraci pro budoucí podpis lze připravit pomocí:
+
+```sh
+APPLE_TEAM_ID=YOURTEAMID python3 Scripts/write-trio-signing-config.py /tmp/ConfigOverride.xcconfig
+```
+
+Skript vyžaduje desetiznakové Team ID, odmítá přepsat existující soubor a pouze vytvoří konfiguraci. Nic neregistruje u Apple. Bundle ID má tvar `org.ypsopumpkit.TEAMID.trio.sim`, app group `group.org.ypsopumpkit.TEAMID.trio.sim` a název **Ypso Trio SIM**. Konfigurace patří až do samostatného checkoutu, nikoli do běžné instalace Tria.
+
+Uživatel má placený Apple Developer účet. Stále zbývá registrace identifikátorů, App Store Connect záznam, distribuční certifikát a provisioning profiles. Soukromé klíče patří do GitHub Secrets, nikoli do chatu nebo zdrojů. Podepsaný build a upload nejsou v tomto kroku prováděny. Celý onboarding a chování na fyzickém iPhonu se musí ještě ověřit; nesmí se přitom připojit skutečná pumpa. CamAPS FX ani nastavení pumpy se nemění.
 
 ## Ověřený výsledek 14. 10. 2026
 
@@ -34,3 +44,5 @@ CamAPS FX ani konfigurace fyzické YpsoPump se nemění. Trio YpsoPump standardn
 - Celý onboarding ani propojení obrazovek s pumpou nebyly automatizovaně proklikány. Snímek není důkazem tohoto chování.
 - Samostatný balíček prošel 19 XCTest testy na Ubuntu a CI balíčku na Linuxu/macOS.
 - Podepsané sestavení pro iPhone ani upload do TestFlight zatím neproběhly.
+
+Novější úpravy izolace pro iPhone vyžadují nový běh CI; historický výsledek níže/výše se vztahuje pouze ke svému uvedenému commitu.
