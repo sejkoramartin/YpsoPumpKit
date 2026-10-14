@@ -27,3 +27,7 @@ assert 'static let isEnabled = true' in manager
 config = (root / 'Config.xcconfig').read_text()
 assert 'YPSO_SIMULATION_ONLY' in config
 print('Verified offline Bluetooth and HealthKit policy')
+
+onboarding = (root / 'Trio/Sources/Modules/Onboarding/View/OnboardingSteps/BluetoothPermissionStepView.swift').read_text()
+assert 'struct SystemAlert:' in onboarding  # Also used by notification onboarding.
+assert 'authorizeBluetooth' not in onboarding

@@ -363,10 +363,10 @@ index c8a3ff2..d202f95 100644
          case .completed:
              state.saveOnboardingData()
 diff --git a/Trio/Sources/Modules/Onboarding/View/OnboardingSteps/BluetoothPermissionStepView.swift b/Trio/Sources/Modules/Onboarding/View/OnboardingSteps/BluetoothPermissionStepView.swift
-index f857425..fe0bd7c 100644
+index f857425..9967153 100644
 --- a/Trio/Sources/Modules/Onboarding/View/OnboardingSteps/BluetoothPermissionStepView.swift
 +++ b/Trio/Sources/Modules/Onboarding/View/OnboardingSteps/BluetoothPermissionStepView.swift
-@@ -1,163 +1,14 @@
+@@ -1,10 +1,3 @@
 -//
 -//  BluetoothPermissionStepView.swift
 -//  Trio
@@ -375,9 +375,9 @@ index f857425..fe0bd7c 100644
 -//
 -import CoreBluetooth
  import SwiftUI
--import UIKit
+ import UIKit
  
- struct BluetoothPermissionStepView: View {
+@@ -12,113 +5,16 @@ struct BluetoothPermissionStepView: View {
      @Bindable var state: Onboarding.StateModel
      var bluetoothManager: BluetoothStateManager
      var currentStep: Binding<OnboardingStep>
@@ -478,9 +478,13 @@ index f857425..fe0bd7c 100644
 -                }
 -            )
 -        )
--    }
--}
--
++            Text("Offline simulation").font(.title2).bold()
++            Text("This experimental app uses a simulated pump and synthetic glucose data. Bluetooth is disabled; no pump or sensor will be connected.")
++            Text("Apple Health export is disabled. Do not enter your therapy settings or use this app for treatment.")
++        }.padding()
+     }
+ }
+ 
 -/// Presents a real UIAlertController, pinned to the system's own style
 -///
 -/// Why use this?
@@ -488,52 +492,10 @@ index f857425..fe0bd7c 100644
 -/// There’s no way to tell SwiftUI “use the system setting here only for this one alert.”
 -/// The workaround is to present a plain UIKit UIAlertController ourself, in its own representable, and explicitly tell it to use the system’s interface style instead of inheriting our forced dark mode.
 -/// We enforce usage of the system's interface style by setting its overrideUserInterfaceStyle to whatever the device is actually using (.light or .dark).
--struct SystemAlert: UIViewControllerRepresentable {
--    @Binding var isPresented: Bool
--
--    let title: String
--    let message: String
--    let allowTitle: String
--    let denyTitle: String
--
--    /// called after Allow or Deny
--    let onAllow: () -> Void
--    let onDeny: () -> Void
--
--    func makeUIViewController(context _: Context) -> UIViewController {
--        // empty container
--        UIViewController()
--    }
--
--    func updateUIViewController(_ uiVC: UIViewController, context _: Context) {
--        guard isPresented, uiVC.presentedViewController == nil else { return }
--
--        let alert = UIAlertController(
--            title: title,
--            message: message,
--            preferredStyle: .alert
--        )
--
--        // force it back to the "real" system style
--        let systemStyle = UIScreen.main.traitCollection.userInterfaceStyle
--        alert.overrideUserInterfaceStyle = systemStyle
--
--        alert.addAction(.init(title: denyTitle, style: .cancel) { _ in
--            isPresented = false
--            onDeny()
--        })
--        alert.addAction(.init(title: allowTitle, style: .default) { _ in
--            isPresented = false
--            onAllow()
--        })
--
--        uiVC.present(alert, animated: true)
-+            Text("Offline simulation").font(.title2).bold()
-+            Text("This experimental app uses a simulated pump and synthetic glucose data. Bluetooth is disabled; no pump or sensor will be connected.")
-+            Text("Apple Health export is disabled. Do not enter your therapy settings or use this app for treatment.")
-+        }.padding()
-     }
- }
++// Shared notification dialog retained from upstream; no Bluetooth permission request.
+ struct SystemAlert: UIViewControllerRepresentable {
+     @Binding var isPresented: Bool
+ 
 diff --git a/Trio/Sources/Modules/Onboarding/View/OnboardingSteps/WelcomeStepView.swift b/Trio/Sources/Modules/Onboarding/View/OnboardingSteps/WelcomeStepView.swift
 index d144217..13b5046 100644
 --- a/Trio/Sources/Modules/Onboarding/View/OnboardingSteps/WelcomeStepView.swift
