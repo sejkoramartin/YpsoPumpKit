@@ -14,7 +14,7 @@ Syntetické rámce procházejí parserem YpsoPumpKit. Most nastaví zásobník 1
 
 V GitHub Actions spusťte **Trio simulator build and tests**. Workflow připraví izolovaný checkout, ověří zdrojové podmínky, sestaví testovací aplikaci, spustí `YpsoTrioIsolationTests` a poté pořídí snímek spuštěné aplikace. Výsledky jsou v artefaktu `trio-simulator-results`. Samotný snímek není důkazem dokončeného onboardingu ani funkčnosti všech obrazovek.
 
-Používá Xcode 26.5 podle upstream build workflow a ad-hoc podpis v simulátoru. Nepotřebuje Apple secrets. Zachovává deployment target Tria (iOS 17.6), nepřepisuje globálně verze závislostí. Zdrojová kontrola nenahrazuje kompilaci a runtime testy. Výsledek prvního CI je nutné ověřit; plná upstream sada testů očekává skutečné pumpy v katalogu a není testovací sadou této omezené varianty.
+Používá Xcode 26.5 podle upstream build workflow a ad-hoc podpis v simulátoru. Nepotřebuje Apple secrets. Zachovává deployment target Tria (iOS 17.6), nepřepisuje globálně verze závislostí. Zdrojová kontrola nenahrazuje kompilaci a runtime testy. Plná upstream sada testů očekává skutečné pumpy v katalogu a není testovací sadou této omezené varianty.
 
 ## iPhone a TestFlight — další etapa
 
@@ -23,3 +23,14 @@ Uživatel má placený Apple Developer účet. Tento první prototyp se přesto 
 Před TestFlight je nutné ověřit izolaci na zařízení, nahradit omezení cílové platformy kontrolami konfigurace pro čistě simulovanou aplikaci, zachovat samostatné bundle ID a app group a připravit podepsané sestavení. Změna nesmí umožnit fyzický transport pumpy. Následně bude potřeba nastavit tým, identifikátory a podpisová oprávnění podle [Trio Browser Build](https://triodocs.org/install/build/browser/browser-build-overview/). Soukromé klíče a hesla patří do GitHub Secrets, nikoli do chatu nebo zdrojového kódu. Standardní workflow Tria nelze bez úprav považovat za bezpečnou distribuční cestu pro tuto experimentální variantu.
 
 CamAPS FX ani konfigurace fyzické YpsoPump se nemění. Trio YpsoPump standardně nepodporuje.
+
+## Ověřený výsledek 14. 10. 2026
+
+[Běh 38627648052](https://github.com/sejkoramartin/YpsoPumpKit/actions/runs/38627648052), zdrojový commit `58d1dcc`:
+
+- iOS sestavení přes Xcode 26.5 prošlo.
+- Swift Testing skutečně spustil 2 testy v sadě `Ypso simulator isolation`; oba prošly (`TEST SUCCEEDED`).
+- Aplikace byla nainstalována a spuštěna v iOS Simulatoru; snímek `trio-launch.png` zobrazuje úvodní onboarding „Hi there!“.
+- Celý onboarding ani propojení obrazovek s pumpou nebyly automatizovaně proklikány. Snímek není důkazem tohoto chování.
+- Samostatný balíček prošel 19 XCTest testy na Ubuntu a CI balíčku na Linuxu/macOS.
+- Podepsané sestavení pro iPhone ani upload do TestFlight zatím neproběhly.
