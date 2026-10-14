@@ -1,6 +1,6 @@
 # GitHub Actions bez vlastního Macu
 
-Experimentální sestavení Loopu používá `IPHONEOS_DEPLOYMENT_TARGET=16.0`, aby odpovídalo minimální verzi iOS balíčku YpsoPumpKit. Původní upstream minimum 15.1 nelze s tímto balíčkem použít; první běh CI na tomto nesouladu selhal.
+Přípravný skript nastavuje pouze projektu Loop `IPHONEOS_DEPLOYMENT_TARGET = 16.0`, aby odpovídalo minimální verzi iOS balíčku YpsoPumpKit. Původní upstream minimum 15.1 nelze s tímto balíčkem použít; první běh CI na tomto nesouladu selhal.
 
 V repozitáři otevřete **Actions**. Automatický workflow **Swift package CI** spouští testy na Linuxu a macOS a sestavuje knihovnu pro iOS Simulator. Zelený výsledek znamená úspěch uvedených kroků, nikoli funkčnost fyzické pumpy.
 
@@ -13,3 +13,5 @@ Most při založení/obnovení simulátoru přenese syntetický zásobník a nor
 Běh CI neposkytuje interaktivní vzdálenou plochu. Další etapa jsou automatizované UI testy a záznamy/screenshoty ze simulátoru. Chyby sestavení jsou vývojové výsledky, ne důvod povolit hardware nebo odstranit ochranné kontroly.
 
 Historická výzkumná zpráva popisuje lokální průzkum ze 14. 10. 2026. Velké zdrojové checkouty, raw API snapshoty a lokální build logy nejsou součástí publikace; součástí jsou odkazy a přesné commity. Věty ve zprávě o tehdejší nepublikované pracovní kopii jsou historický stav.
+
+Nepředávejte minimum iOS jako globální argument `xcodebuild`: tím by se snížilo i minimum závislostí, například OmnipodKit (17.6).

@@ -17,6 +17,16 @@ expected_loop=c30b5c89b1dc4151628f33f1384dd4796eaeeec2
 ln -s "$package_root" "$workspace/YpsoPumpKit"
 git -C "$workspace/Loop" apply --check "$package_root/Integration/Loop/simulator.patch"
 git -C "$workspace/Loop" apply "$package_root/Integration/Loop/simulator.patch"
+# Raise only Loop's deployment target; dependencies retain their own higher minima.
+python3 - "$workspace/Loop/Loop.xcodeproj/project.pbxproj" <<'PYTARGET'
+from pathlib import Path
+import sys
+project = Path(sys.argv[1])
+source = project.read_text()
+assert 'IPHONEOS_DEPLOYMENT_TARGET = 15.1;' in source
+project.write_text(source.replace('IPHONEOS_DEPLOYMENT_TARGET = 15.1;',
+                                  'IPHONEOS_DEPLOYMENT_TARGET = 16.0;'))
+PYTARGET
 cat >> "$workspace/LoopConfigOverride.xcconfig" <<'CONFIG'
 
 // Simulator-only research build. Device compilation is blocked in the source patch.
