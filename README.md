@@ -28,9 +28,10 @@ The demo prints synthetic reservoir and battery data and rejects a delivery requ
 GitHub Actions provides macOS/Xcode:
 
 - **Swift package CI** runs Linux/macOS tests and an iOS Simulator library build on pushes and pull requests.
-- **Loop simulator build** is manually started in Actions. It fetches a pinned LoopWorkspace, applies the included simulator-only patch, and builds without signing for iOS Simulator. Diagnostics are downloadable as an artifact.
+- **Trio simulator build and tests** is manually started in Actions. It fetches pinned Trio, applies the simulator-only patch, runs isolation tests and attempts an app launch with a screenshot. Diagnostics are downloadable as an artifact.
+- The historical **Loop simulator build** workflow is disabled.
 
-The Loop integration is an experimental bootstrap bridge into LoopKit's existing `MockPumpManager`, not a complete `YpsoPumpManager`. A compile-time guard rejects physical iPhone builds. A successful build does not establish UI behavior or physical pump compatibility. See [CI instructions](Documentation/CI.md).
+The Trio integration is an experimental bootstrap bridge into its existing `MockPumpManager`, not a complete `YpsoPumpManager`. A compile-time guard currently rejects physical iPhone builds. A successful build does not establish UI behavior or physical pump compatibility. See [Trio instructions](Documentation/TRIO.md).
 
 ## Protocol uncertainty is explicit
 
@@ -44,4 +45,4 @@ Older public sources disagree on status length, battery fields, counters and key
 
 ## License and sources
 
-New Swift code is MIT; see [LICENSE](LICENSE) and [NOTICE](NOTICE). The Loop patch retains [upstream attribution](Integration/Loop/UPSTREAM-LICENSE.md). Referenced AGPL Android implementations are not copied or linked into this package. This project is not affiliated with Ypsomed, CamDiab, LoopKit, Trio or AndroidAPS.
+New Swift code is MIT; see [LICENSE](LICENSE) and [NOTICE](NOTICE). The Trio patch retains [upstream attribution](Integration/Trio/UPSTREAM-LICENSE.md); the historical Loop patch retains [its attribution](Integration/Loop/UPSTREAM-LICENSE.md). Referenced AGPL Android implementations are not copied or linked into this package. This project is not affiliated with Ypsomed, CamDiab, LoopKit, Trio or AndroidAPS.
