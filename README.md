@@ -1,5 +1,7 @@
 # YpsoPumpKit
 
+**Active integration: Trio.** See [Trio simulator setup and TestFlight roadmap](Documentation/TRIO.md). The earlier Loop workflow is disabled.
+
 [![Swift package CI](https://github.com/sejkoramartin/YpsoPumpKit/actions/workflows/ci.yml/badge.svg)](https://github.com/sejkoramartin/YpsoPumpKit/actions/workflows/ci.yml)
 
 A Swift package for offline YpsoPump protocol research and simulator-only experiments toward future LoopKit integration. **This is not a hardware pump driver or a treatment system.**

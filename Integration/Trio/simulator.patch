@@ -1,0 +1,296 @@
+diff --git a/Trio.xcodeproj/project.pbxproj b/Trio.xcodeproj/project.pbxproj
+index e6f6b54..286095d 100644
+--- a/Trio.xcodeproj/project.pbxproj
++++ b/Trio.xcodeproj/project.pbxproj
+@@ -7,6 +7,7 @@
+ 	objects = {
+ 
+ /* Begin PBXBuildFile section */
++        AABBCCEE0000000000000001 /* YpsoPumpSimulator in Frameworks */ = {isa = PBXBuildFile; productRef = AABBCCEE0000000000000002 /* YpsoPumpSimulator */; };
+ 		041D1E995A6AE92E9289DC49 /* TreatmentsDataFlow.swift in Sources */ = {isa = PBXBuildFile; fileRef = C8D1A7CA8C10C4403D4BBFA7 /* TreatmentsDataFlow.swift */; };
+ 		0D9A5E34A899219C5C4CDFAF /* HistoryStateModel.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9455FA2D92E77A6C4AFED8A3 /* HistoryStateModel.swift */; };
+ 		110AEDE32C5193D200615CC9 /* BolusIntent.swift in Sources */ = {isa = PBXBuildFile; fileRef = 110AEDE02C5193D100615CC9 /* BolusIntent.swift */; };
+@@ -2086,6 +2087,7 @@
+ 			isa = PBXFrameworksBuildPhase;
+ 			buildActionMask = 2147483647;
+ 			files = (
++                AABBCCEE0000000000000001 /* YpsoPumpSimulator in Frameworks */,
+ 				CE95BF632BA771BE00DC3DE3 /* LoopTestingKit.framework in Frameworks */,
+ 				3B4BA7722D8DBD690069D5B8 /* G7SensorKitUI.framework in Frameworks */,
+ 				3B4BA7742D8DBD690069D5B8 /* LibreTransmitter.framework in Frameworks */,
+@@ -4831,6 +4833,7 @@
+ 			);
+ 			name = Trio;
+ 			packageProductDependencies = (
++                AABBCCEE0000000000000002 /* YpsoPumpSimulator */,
+ 				3811DE0F25C9D37700A708ED /* Swinject */,
+ 				38B17B6525DD90E0005CAE3D /* SwiftDate */,
+ 				3833B46C26012030003021B3 /* Algorithms */,
+@@ -5010,6 +5013,7 @@
+ 			);
+ 			mainGroup = 388E594F25AD948C0019842D;
+ 			packageReferences = (
++                AABBCCEE0000000000000003 /* XCLocalSwiftPackageReference "../YpsoPumpKit" */,
+ 				3811DE0E25C9D37700A708ED /* XCRemoteSwiftPackageReference "Swinject" */,
+ 				38B17B6425DD90E0005CAE3D /* XCRemoteSwiftPackageReference "SwiftDate" */,
+ 				3833B46B26012030003021B3 /* XCRemoteSwiftPackageReference "swift-algorithms" */,
+@@ -6828,6 +6832,11 @@
+ /* End XCRemoteSwiftPackageReference section */
+ 
+ /* Begin XCLocalSwiftPackageReference section */
++        AABBCCEE0000000000000003 /* XCLocalSwiftPackageReference "../YpsoPumpKit" */ = {
++            isa = XCLocalSwiftPackageReference;
++            relativePath = ../YpsoPumpKit;
++        };
++
+ 		5E12FE112EBC0000000000A0 /* XCLocalSwiftPackageReference "LoopAlgorithm" */ = {
+ 			isa = XCLocalSwiftPackageReference;
+ 			relativePath = LoopAlgorithm;
+@@ -6839,6 +6848,11 @@
+ /* End XCLocalSwiftPackageReference section */
+ 
+ /* Begin XCSwiftPackageProductDependency section */
++        AABBCCEE0000000000000002 /* YpsoPumpSimulator */ = {
++            isa = XCSwiftPackageProductDependency;
++            package = AABBCCEE0000000000000003 /* XCLocalSwiftPackageReference "../YpsoPumpKit" */;
++            productName = YpsoPumpSimulator;
++        };
+ 		3811DE0F25C9D37700A708ED /* Swinject */ = {
+ 			isa = XCSwiftPackageProductDependency;
+ 			package = 3811DE0E25C9D37700A708ED /* XCRemoteSwiftPackageReference "Swinject" */;
+diff --git a/Trio/Sources/APS/DeviceDataManager.swift b/Trio/Sources/APS/DeviceDataManager.swift
+index 2c19d22..2f319cc 100644
+--- a/Trio/Sources/APS/DeviceDataManager.swift
++++ b/Trio/Sources/APS/DeviceDataManager.swift
+@@ -1,3 +1,7 @@
++#if !targetEnvironment(simulator)
++#error("Ypso Trio experiment: iOS Simulator only until device isolation is validated")
++#endif
++import YpsoPumpSimulator
+ import Combine
+ import CoreData
+ import Foundation
+@@ -74,6 +78,12 @@ final class BaseDeviceDataManager: DeviceDataManager, Injectable {
+                 trioAlertManager?.unregister(managerIdentifier: oldValue.pluginIdentifier)
+             }
+             if let pumpManager = pumpManager {
++                // Fail closed before attaching delegates or accepting a persisted hardware manager.
++                guard let mock = pumpManager as? MockPumpManager else {
++                    preconditionFailure("Only the in-memory Ypso simulator is permitted")
++                }
++                do { try YpsoTrioSimulatorBridge.configure(mock) }
++                catch { preconditionFailure("Invalid synthetic Ypso status: \(error)") }
+                 pumpManager.pumpManagerDelegate = self
+                 pumpManager.delegateQueue = processQueue
+ 
+@@ -312,7 +322,7 @@ final class BaseDeviceDataManager: DeviceDataManager, Injectable {
+     }
+ 
+     public func pumpManagerTypeByIdentifier(_ identifier: String) -> PumpManagerUI.Type? {
+-        DeviceCatalog.pumpManagersByIdentifier[identifier]
++        identifier == MockPumpManager.pluginIdentifier ? MockPumpManager.self : nil
+     }
+ 
+     private func pumpManagerFromRawValue(_ rawValue: [String: Any]) -> PumpManagerUI? {
+@@ -332,7 +342,7 @@ final class BaseDeviceDataManager: DeviceDataManager, Injectable {
+ 
+         /// Falls back to `legacyIdentifierPrefixes`, which is how state persisted by the retired "Omnipod"
+         /// (OmniKit) and "Omnipod-DASH" (OmniBLE) managers still resolves to the universal OmnipodKit manager.
+-        return DeviceCatalog.pumpEntry(forPersistedIdentifier: managerIdentifier)?.manager
++        return managerIdentifier == MockPumpManager.pluginIdentifier ? MockPumpManager.self : nil
+     }
+ }
+ 
+@@ -674,3 +684,19 @@ protocol PumpReservoirObserver {
+ protocol PumpDeactivatedObserver {
+     func pumpDeactivatedDidChange()
+ }
++
++
++/// Synthetic telemetry bootstrap; later simulated events are handled by MockKit.
++/// This is not a YpsoPump hardware driver or a complete PumpManager implementation.
++enum YpsoTrioSimulatorBridge {
++    static func configure(_ manager: MockPumpManager) throws {
++        let status = try SimulationScenario.normal.parsedStatus()
++        var state = manager.state
++        state.reservoirUnitsRemaining = status.reservoirUnits
++        state.pumpBatteryChargeRemaining = status.batteryBars.map { Double($0) / 5 }
++        state.suspendState = .suspended(Date())
++        state.bolusEnactmentShouldError = true
++        state.tempBasalEnactmentShouldError = true
++        manager.state = state
++    }
++}
+diff --git a/Trio/Sources/APS/Devices/DeviceCatalog.swift b/Trio/Sources/APS/Devices/DeviceCatalog.swift
+index 195eb8f..c00f01b 100644
+--- a/Trio/Sources/APS/Devices/DeviceCatalog.swift
++++ b/Trio/Sources/APS/Devices/DeviceCatalog.swift
+@@ -341,106 +341,14 @@ extension DeviceCatalog {
+     /// Order here is the order shown in the picker, within each manufacturer section.
+     static let cgms: [CGMCatalogEntry] = [
+         CGMCatalogEntry(.native(.none), manufacturer: .otherSources),
+-
+-        // Both Libre names carry their variants inline, matching the titles the driver authors chose upstream.
+-        // No icons: LibreTransmitterUI ships no asset catalog, and LibreLoopUI ships only onboarding steps.
+-        CGMCatalogEntry(
+-            .managed(LibreTransmitterManagerV3.self),
+-            manufacturer: .abbott,
+-            name: "FreeStyle Libre 1 / 2 / 2+"
+-        ),
+-        // "(Beta)" stays in the bold first line: it is a maturity warning about a driver feeding dosing
+-        // decisions, so it must not be demoted to the secondary line.
+-        CGMCatalogEntry(
+-            .managed(LibreLoopCGMManager.self),
+-            manufacturer: .abbott,
+-            name: "FreeStyle Libre 3 / 3+ (Beta)"
+-        ),
+-
+-        // Dexcom rebrands rather than versioning, so the "/" names carry the variants and a sub-line would
+-        // just repeat them.
+-        // No G5 icon: CGMBLEKitUI ships only "g6", and reusing it would picture the wrong hardware.
+-        CGMCatalogEntry(.managed(G5CGMManager.self), manufacturer: .dexcom, name: "Dexcom G5"),
+-        CGMCatalogEntry(
+-            .managed(G6CGMManager.self),
+-            manufacturer: .dexcom,
+-            name: "Dexcom G6 / ONE",
+-            icon: .uiBundle(identifier: "com.loopkit.CGMBLEKitUI", asset: "g6")
+-        ),
+-        CGMCatalogEntry(
+-            .managed(G7CGMManager.self),
+-            manufacturer: .dexcom,
+-            name: "Dexcom G7 / ONE+",
+-            icon: .uiBundle(identifier: "org.loopkit.G7SensorKitUI", asset: "g7")
+-        ),
+-
+-        CGMCatalogEntry(
+-            .managed(AccuChekCgmManager.self),
+-            manufacturer: .roche,
+-            name: "Accu-Chek SmartGuide",
+-            icon: .managerBundle(asset: "sensor")
+-        ),
+-
+-        CGMCatalogEntry(
+-            .managed(EversenseCGMManager.self),
+-            manufacturer: .senseonics,
+-            name: "Eversense",
+-            supportedModels: ["E3", "E365"],
+-            icon: .managerBundle(asset: "transmitter")
+-        ),
+-
+-        CGMCatalogEntry(.native(.nightscout), manufacturer: .otherSources, icon: .trio(asset: "owl")),
+-        CGMCatalogEntry(.native(.xdrip), manufacturer: .otherSources),
+-
+-        CGMCatalogEntry(
+-            .native(.simulator),
+-            manufacturer: .simulator,
+-            icon: .uiBundle(identifier: "com.loopkit.MockKitUI", asset: "CGM Simulator")
+-        )
++        CGMCatalogEntry(.native(.simulator), manufacturer: .simulator)
+     ]
+ 
+     static let pumps: [PumpCatalogEntry] = [
+-        PumpCatalogEntry(
+-            OmniPumpManager.self,
+-            manufacturer: .insulet,
+-            name: "Omnipod",
+-            supportedModels: ["Classic", "DASH", "5"],
+-            icon: .managerBundle(asset: "Pod"),
+-            legacyIdentifierPrefixes: ["Omni"],
+-            basalCapability: BasalRateCapability(supportedRates: OmniPumpManager.onboardingSupportedBasalRates),
+-            reportsRewindEvents: false
+-        ),
+-        PumpCatalogEntry(
+-            MinimedPumpManager.self,
+-            manufacturer: .medtronic,
+-            name: "MiniMed",
+-            supportedModels: ["x15", "x22", "x23", "x54"],
+-            icon: .uiBundle(identifier: "org.loopkit.MinimedKitUI", asset: "5xx Small Outline"),
+-            basalCapability: BasalRateCapability(supportedRates: MinimedPumpManager.onboardingSupportedBasalRates),
+-            reportsRewindEvents: true
+-        ),
+-        PumpCatalogEntry(
+-            MedtrumPumpManager.self,
+-            manufacturer: .medtrum,
+-            name: "Medtrum Nano",
+-            supportedModels: ["200U", "300U"],
+-            icon: .managerBundle(asset: "nano200"),
+-            basalCapability: BasalRateCapability(supportedRates: MedtrumPumpManager.onboardingSupportedBasalRates),
+-            reportsRewindEvents: false
+-        ),
+-        PumpCatalogEntry(
+-            DanaKitPumpManager.self,
+-            manufacturer: .sooil,
+-            name: "Dana",
+-            supportedModels: ["DanaRS", "Dana-i"],
+-            icon: .managerBundle(asset: "danars"),
+-            basalCapability: BasalRateCapability(supportedRates: DanaKitPumpManager.onboardingSupportedBasalRates),
+-            reportsRewindEvents: true
+-        ),
+         PumpCatalogEntry(
+             MockPumpManager.self,
+             manufacturer: .simulator,
+-            name: String(localized: "Pump Simulator", comment: "Simulated pump in the device picker"),
++            name: "YpsoPump — SIMULATION ONLY",
+             icon: .uiBundle(identifier: "com.loopkit.MockKitUI", asset: "Pump Simulator"),
+             basalCapability: BasalRateCapability(supportedRates: MockPumpManager.onboardingSupportedBasalRates),
+             reportsRewindEvents: false
+@@ -462,9 +370,9 @@ extension DeviceCatalog {
+         cgms.map(CGMModel.init)
+     }
+ 
+-    /// Pumps offered during onboarding: real hardware only, since onboarding is configuring actual therapy.
++    /// Experimental onboarding offers only the in-memory simulator.
+     static var onboardingPumps: [PumpCatalogEntry] {
+-        pumps.filter { $0.manufacturer != .simulator }
++        pumps
+     }
+ 
+     /// Resolves an already-paired pump to an onboarding-eligible entry.
+@@ -483,8 +391,8 @@ extension DeviceCatalog {
+ 
+     /// Onboarding's fallback when no pump is paired yet, and for any pump not offered during onboarding.
+     static var defaultOnboardingPump: PumpCatalogEntry {
+-        // Omnipod has always been this fallback; its basal bounds are the DASH values onboarding assumed.
+-        pumps.first { $0.manufacturer == .insulet } ?? pumps[0]
++        // This experimental catalog contains only the in-memory simulator.
++        pumps[0]
+     }
+ 
+     static func cgmEntry(id: String) -> CGMCatalogEntry? {
+diff --git a/TrioTests/DeviceCatalogTests.swift b/TrioTests/DeviceCatalogTests.swift
+index d0dfacb..bbc990e 100644
+--- a/TrioTests/DeviceCatalogTests.swift
++++ b/TrioTests/DeviceCatalogTests.swift
+@@ -1,3 +1,4 @@
++import MockKit
+ import DanaKit
+ import Foundation
+ import LoopKitUI
+@@ -298,3 +299,27 @@ import UIKit
+         }
+     }
+ }
++
++@Suite("Ypso simulator isolation") struct YpsoTrioIsolationTests {
++    @Test func onlySimulatorCanBeSelectedOrRestored() {
++        #expect(DeviceCatalog.pumps.count == 1)
++        #expect(DeviceCatalog.pumps.first?.manufacturer == .simulator)
++        #expect(DeviceCatalog.onboardingPumps == DeviceCatalog.pumps)
++        for identifier in ["Omnipod", "Omnipod-DASH", "Minimed500", "Dana", "YpsoPump"] {
++            #expect(DeviceCatalog.pumpEntry(forPersistedIdentifier: identifier) == nil)
++        }
++        #expect(DeviceCatalog.cgmManagerEntries.isEmpty)
++    }
++
++    @Test func syntheticStatusIsLoadedAndDosingFailsClosed() throws {
++        let mock = MockPumpManager()
++        try YpsoTrioSimulatorBridge.configure(mock)
++        #expect(abs(mock.state.reservoirUnitsRemaining - 123.45) < 0.001)
++        #expect(mock.state.pumpBatteryChargeRemaining == 0.8)
++        #expect(mock.state.bolusEnactmentShouldError)
++        #expect(mock.state.tempBasalEnactmentShouldError)
++        if case .suspended = mock.state.suspendState {} else {
++            Issue.record("Simulator must start suspended")
++        }
++    }
++}

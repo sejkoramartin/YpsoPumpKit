@@ -1,0 +1,75 @@
+name: Trio simulator build and tests
+on:
+  workflow_dispatch:
+permissions:
+  contents: read
+concurrency:
+  group: trio-simulator
+  cancel-in-progress: true
+jobs:
+  simulator:
+    runs-on: macos-26
+    timeout-minutes: 60
+    steps:
+      - uses: actions/checkout@d23441a48e516b6c34aea4fa41551a30e30af803 # v6
+        with:
+          persist-credentials: false
+      - name: Select upstream build toolchain
+        run: sudo xcode-select --switch /Applications/Xcode_26.5.app/Contents/Developer
+      - name: Prepare pinned Trio and isolation checks
+        run: bash Scripts/prepare-trio-ci.sh "$RUNNER_TEMP/ypso-trio"
+      - name: Choose iPhone simulator
+        shell: bash
+        run: |
+          xcrun simctl list devices available -j > "$RUNNER_TEMP/devices.json"
+          python3 - <<'PY'
+          import json, os
+          data = json.load(open(os.environ['RUNNER_TEMP'] + '/devices.json'))
+          phones = [d for runtime, devices in data['devices'].items() if '.iOS-' in runtime
+                    for d in devices if d['name'].startswith('iPhone') and d['isAvailable']]
+          assert phones, 'No available iPhone simulator'
+          with open(os.environ['GITHUB_ENV'], 'a') as f:
+              f.write('SIMULATOR_ID=' + phones[0]['udid'] + '\n')
+          PY
+      - name: Build and run simulator isolation tests
+        shell: bash
+        run: |
+          set -o pipefail
+          cd "$RUNNER_TEMP/ypso-trio/Trio"
+          xcodebuild test \
+            -workspace Trio.xcworkspace -scheme 'Trio Tests' \
+            -configuration Debug \
+            -destination "platform=iOS Simulator,id=$SIMULATOR_ID" \
+            -derivedDataPath "$RUNNER_TEMP/TrioDerivedData" \
+            -resultBundlePath "$RUNNER_TEMP/TrioTests.xcresult" \
+            -only-testing:TrioTests/YpsoTrioIsolationTests \
+            -skipPackagePluginValidation -skipMacroValidation \
+            CODE_SIGN_IDENTITY=- CODE_SIGN_STYLE=Manual DEVELOPMENT_TEAM= \
+            PROVISIONING_PROFILE_SPECIFIER= \
+            COMPILER_INDEX_STORE_ENABLE=NO \
+            2>&1 | tee "$RUNNER_TEMP/trio-build.log"
+      - name: Launch simulator app and capture screen
+        shell: bash
+        run: |
+          xcrun simctl bootstatus "$SIMULATOR_ID" -b
+          xcrun simctl install "$SIMULATOR_ID" "$RUNNER_TEMP/TrioDerivedData/Build/Products/Debug-iphonesimulator/Trio.app"
+          xcrun simctl launch "$SIMULATOR_ID" org.ypsopumpkit.trio.simulator
+          sleep 10
+          xcrun simctl io "$SIMULATOR_ID" screenshot "$RUNNER_TEMP/trio-launch.png"
+      - name: Surface compiler errors
+        if: failure()
+        run: |
+          if [ -f "$RUNNER_TEMP/trio-build.log" ]; then
+            rg -n 'error:|BUILD FAILED|TEST FAILED|Testing failed' "$RUNNER_TEMP/trio-build.log" | tail -60 || true
+          fi
+      - name: Save diagnostics and screenshot
+        if: always()
+        uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02 # v4
+        with:
+          name: trio-simulator-results
+          path: |
+            ${{ runner.temp }}/trio-build.log
+            ${{ runner.temp }}/TrioTests.xcresult
+            ${{ runner.temp }}/trio-launch.png
+          retention-days: 7
+          if-no-files-found: warn
