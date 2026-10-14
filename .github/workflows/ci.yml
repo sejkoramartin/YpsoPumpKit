@@ -1,0 +1,39 @@
+name: Swift package CI
+on:
+  push:
+    branches: [main]
+  pull_request:
+  workflow_dispatch:
+permissions:
+  contents: read
+concurrency:
+  group: package-${{ github.ref }}
+  cancel-in-progress: true
+jobs:
+  linux:
+    runs-on: ubuntu-24.04
+    container: swift:6.0.3-noble
+    timeout-minutes: 15
+    steps:
+      - uses: actions/checkout@d23441a48e516b6c34aea4fa41551a30e30af803 # v6
+        with:
+          persist-credentials: false
+      - run: swift --version
+      - run: swift test
+      - run: swift run ypso-simulator
+  macos:
+    runs-on: macos-15
+    timeout-minutes: 20
+    steps:
+      - uses: actions/checkout@d23441a48e516b6c34aea4fa41551a30e30af803 # v6
+        with:
+          persist-credentials: false
+      - run: swift --version && xcodebuild -version
+      - run: swift test
+      - run: swift run ypso-simulator
+      - name: Build library for iOS Simulator
+        run: >-
+          xcodebuild -scheme YpsoPumpSimulator
+          -destination 'generic/platform=iOS Simulator'
+          -derivedDataPath "$RUNNER_TEMP/YpsoDerivedData"
+          CODE_SIGNING_ALLOWED=NO build

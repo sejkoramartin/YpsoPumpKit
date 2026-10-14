@@ -1,0 +1,41 @@
+name: Loop simulator build
+on:
+  workflow_dispatch:
+permissions:
+  contents: read
+concurrency:
+  group: loop-simulator
+  cancel-in-progress: true
+jobs:
+  build:
+    runs-on: macos-26
+    timeout-minutes: 45
+    steps:
+      - uses: actions/checkout@d23441a48e516b6c34aea4fa41551a30e30af803 # v6
+        with:
+          persist-credentials: false
+      - name: Prepare pinned upstream workspace
+        run: bash Scripts/prepare-loop-ci.sh "$RUNNER_TEMP/ypso-loop"
+      - name: Build only for iOS Simulator
+        shell: bash
+        run: |
+          set -o pipefail
+          xcodebuild -version
+          xcodebuild \
+            -workspace "$RUNNER_TEMP/ypso-loop/LoopWorkspace/LoopWorkspace.xcworkspace" \
+            -scheme LoopWorkspace \
+            -configuration Debug \
+            -destination 'generic/platform=iOS Simulator' \
+            -derivedDataPath "$RUNNER_TEMP/LoopDerivedData" \
+            -resultBundlePath "$RUNNER_TEMP/LoopBuild.xcresult" \
+            CODE_SIGNING_ALLOWED=NO build 2>&1 | tee "$RUNNER_TEMP/loop-build.log"
+      - name: Save build diagnostics
+        if: always()
+        uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02 # v4
+        with:
+          name: loop-simulator-diagnostics
+          path: |
+            ${{ runner.temp }}/loop-build.log
+            ${{ runner.temp }}/LoopBuild.xcresult
+          retention-days: 7
+          if-no-files-found: warn

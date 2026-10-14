@@ -1,0 +1,9 @@
+.build/
+.swiftpm/
+.DS_Store
+DerivedData/
+*.xcresult/
+*.log
+.env
+*.p12
+*.mobileprovision

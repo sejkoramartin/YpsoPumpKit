@@ -1,0 +1,145 @@
+diff --git a/Loop.xcodeproj/project.pbxproj b/Loop.xcodeproj/project.pbxproj
+index 8f8f9dc..db291fd 100644
+--- a/Loop.xcodeproj/project.pbxproj
++++ b/Loop.xcodeproj/project.pbxproj
+@@ -7,6 +7,7 @@
+ 	objects = {
+ 
+ /* Begin PBXBuildFile section */
++        AABBCCDD0000000000000001 /* YpsoPumpSimulator in Frameworks */ = {isa = PBXBuildFile; productRef = AABBCCDD0000000000000002 /* YpsoPumpSimulator */; };
+ 		1419606428D9550400BA86E0 /* LoopKitUI.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 437AFEE6203688CF008C4892 /* LoopKitUI.framework */; };
+ 		1419606928D9554E00BA86E0 /* LoopKitUI.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 437AFEE6203688CF008C4892 /* LoopKitUI.framework */; };
+ 		1419606A28D955BC00BA86E0 /* MockKitUI.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = C101947127DD473C004E7EB8 /* MockKitUI.framework */; };
+@@ -1442,6 +1443,7 @@
+ 			isa = PBXFrameworksBuildPhase;
+ 			buildActionMask = 2147483647;
+ 			files = (
++                AABBCCDD0000000000000001 /* YpsoPumpSimulator in Frameworks */,
+ 				C1D6EEA02A06C7270047DE5C /* MKRingProgressView in Frameworks */,
+ 				43F5C2C91B929C09003EB13D /* HealthKit.framework in Frameworks */,
+ 				43D9FFD621EAE05D00AF44BF /* LoopCore.framework in Frameworks */,
+@@ -2744,6 +2746,7 @@
+ 			);
+ 			name = Loop;
+ 			packageProductDependencies = (
++                AABBCCDD0000000000000002 /* YpsoPumpSimulator */,
+ 				C1F00C5F285A802A006302C5 /* SwiftCharts */,
+ 				C1D6EE9F2A06C7270047DE5C /* MKRingProgressView */,
+ 				C1735B1D2A0809830082BB8A /* ZIPFoundation */,
+@@ -3047,6 +3050,7 @@
+ 			);
+ 			mainGroup = 43776F831B8022E90074EA36;
+ 			packageReferences = (
++                AABBCCDD0000000000000003 /* YpsoPumpKit */ ,
+ 				C1CCF10B2858F4F70035389C /* XCRemoteSwiftPackageReference "SwiftCharts" */,
+ 				C1D6EE9E2A06C7270047DE5C /* XCRemoteSwiftPackageReference "MKRingProgressView" */,
+ 				C1735B1C2A0809830082BB8A /* XCRemoteSwiftPackageReference "ZIPFoundation" */,
+@@ -4990,6 +4994,13 @@
+ 		};
+ /* End XCConfigurationList section */
+ 
++/* Begin XCLocalSwiftPackageReference section */
++        AABBCCDD0000000000000003 /* YpsoPumpKit */ = {
++            isa = XCLocalSwiftPackageReference;
++            relativePath = ../YpsoPumpKit;
++        };
++/* End XCLocalSwiftPackageReference section */
++
+ /* Begin XCRemoteSwiftPackageReference section */
+ 		C1735B1C2A0809830082BB8A /* XCRemoteSwiftPackageReference "ZIPFoundation" */ = {
+ 			isa = XCRemoteSwiftPackageReference;
+@@ -5018,6 +5029,11 @@
+ /* End XCRemoteSwiftPackageReference section */
+ 
+ /* Begin XCSwiftPackageProductDependency section */
++        AABBCCDD0000000000000002 /* YpsoPumpSimulator */ = {
++            isa = XCSwiftPackageProductDependency;
++            package = AABBCCDD0000000000000003 /* YpsoPumpKit */;
++            productName = YpsoPumpSimulator;
++        };
+ 		C11B9D5A286778A800500CF8 /* SwiftCharts */ = {
+ 			isa = XCSwiftPackageProductDependency;
+ 			package = C1CCF10B2858F4F70035389C /* XCRemoteSwiftPackageReference "SwiftCharts" */;
+diff --git a/Loop/Managers/DeviceDataManager.swift b/Loop/Managers/DeviceDataManager.swift
+index 09ee0c1..0865771 100644
+--- a/Loop/Managers/DeviceDataManager.swift
++++ b/Loop/Managers/DeviceDataManager.swift
+@@ -6,6 +6,12 @@
+ //  Copyright © 2015 Nathan Racklyeft. All rights reserved.
+ //
+ 
++// This entire experimental app is restricted to the iOS Simulator.
++#if !targetEnvironment(simulator)
++#error("YpsoPump experiment: build only for an iOS Simulator, never a physical iPhone")
++#endif
++import MockKit
++import YpsoPumpSimulator
+ import BackgroundTasks
+ import HealthKit
+ import LoopKit
+@@ -476,7 +482,7 @@ final class DeviceDataManager {
+     }
+ 
+     var availablePumpManagers: [PumpManagerDescriptor] {
+-        var pumpManagers = pluginManager.availablePumpManagers + availableStaticPumpManagers
++        var pumpManagers = [PumpManagerDescriptor(identifier: MockPumpManager.pluginIdentifier, localizedTitle: "YpsoPump — SIMULATION ONLY")]
+         
+         pumpManagers = pumpManagers.filter({ pumpManager in
+             guard !deviceWhitelist.pumpDevices.isEmpty else {
+@@ -511,6 +517,12 @@ final class DeviceDataManager {
+         }
+ 
+         let result = pumpManagerUIType.setupViewController(initialSettings: settings, bluetoothProvider: bluetoothProvider, colorPalette: .default, allowDebugFeatures: FeatureFlags.allowDebugFeatures, prefersToSkipUserInteraction: prefersToSkipUserInteraction, allowedInsulinTypes: allowedInsulinTypes)
++        // Parse synthetic multi-frame telemetry through YpsoPumpKit, then bootstrap
++        // LoopKit's in-memory MockPumpManager. No physical transport is injectable.
++        if case .createdAndOnboarded(let manager) = result, let mock = manager as? MockPumpManager {
++            do { try YpsoLoopSimulatorBridge.configure(mock) }
++            catch { return .failure(error) }
++        }
+         
+         if case .createdAndOnboarded(let pumpManagerUI) = result {
+             pumpManagerOnboarding(didCreatePumpManager: pumpManagerUI)
+@@ -527,7 +539,9 @@ final class DeviceDataManager {
+     }
+ 
+     public func pumpManagerTypeByIdentifier(_ identifier: String) -> PumpManagerUI.Type? {
+-        return pluginManager.getPumpManagerTypeByIdentifier(identifier) ?? staticPumpManagersByIdentifier[identifier]
++        // Refuse physical-pump plugins, including persisted identifiers from another build.
++        guard identifier == MockPumpManager.pluginIdentifier else { return nil }
++        return MockPumpManager.self
+     }
+ 
+     private func pumpManagerTypeFromRawValue(_ rawValue: [String: Any]) -> PumpManager.Type? {
+@@ -556,7 +570,9 @@ final class DeviceDataManager {
+                 return nil
+         }
+ 
+-        return Manager.init(rawState: rawState) as? PumpManagerUI
++        guard let mock = Manager.init(rawState: rawState) as? MockPumpManager else { return nil }
++        do { try YpsoLoopSimulatorBridge.configure(mock); return mock }
++        catch { return nil }
+     }
+     
+     private func checkPumpDataAndLoop() {
+@@ -1781,3 +1797,21 @@ extension DeviceDataManager: DeviceStatusProvider {}
+ extension DeviceDataManager {
+     var detectedSystemTimeOffset: TimeInterval { trustedTimeChecker.detectedSystemTimeOffset }
+ }
++
++
++/// Experimental bootstrap bridge, not a complete YpsoPump PumpManager implementation.
++/// Subsequent event simulation belongs to LoopKit's MockPumpManager.
++private enum YpsoLoopSimulatorBridge {
++    static func configure(_ manager: MockPumpManager) throws {
++        let status = try SimulationScenario.normal.parsedStatus()
++        var state = manager.state
++        state.reservoirUnitsRemaining = status.reservoirUnits
++        // MockKit needs a normalized gauge. Bars/5 is UI approximation, not measured percent.
++        state.pumpBatteryChargeRemaining = status.batteryBars.map { Double($0) / 5 }
++        // Do not interpret the disputed protocol mode as real delivery state.
++        state.suspendState = .suspended(Date())
++        state.bolusEnactmentShouldError = true
++        state.tempBasalEnactmentShouldError = true
++        manager.state = state
++    }
++}

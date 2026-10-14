@@ -1,0 +1,3 @@
+# Preserve patch context and the verbatim upstream license.
+*.patch -whitespace
+Integration/Loop/UPSTREAM-LICENSE.md -whitespace

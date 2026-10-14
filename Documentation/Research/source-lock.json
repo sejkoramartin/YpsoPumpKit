@@ -1,0 +1,14 @@
+{
+  "Loop-simulator": "c30b5c89b1dc4151628f33f1384dd4796eaeeec2",
+  "upstream/AndroidAPS-alex-poor": "6fc570be2e1890ff92fa8918f6c265cdad985d5d",
+  "upstream/AndroidAPS-Baz00k": "53c1a66c8b6d4ad899ae8dd240a6de8f30ce6c7e",
+  "upstream/AndroidAPS-ypso": "1d41bdebda51f1dc4df672014738c339873f4962",
+  "upstream/ypsomed-pump": "71ae55e372cb7a4fe1c96bfdd536d3beccbbb8a2",
+  "upstream/Ypso": "e8b794a7efcec27ba8994c2d582cc067dcd3e052",
+  "upstream/Trio": "0b29cd53415e7f0e668677749cad8daf81c68c2f",
+  "upstream/ypso-keys": "10d906a1a1ee7fca9074bdacdf34d890e07fe3ff",
+  "upstream/LoopWorkspace": "548b33245198eaae165c094c9c68fe333cb69c05",
+  "upstream/ypsopump-research": "de7e867241fafd2fb8061ceeecf42af2883b9eb4",
+  "upstream/LoopKit": "29a8e0f0a4fb0104a2989f63bd4d61da520f3363",
+  "upstream/research-crypto-fix": "1234172fe1e1ba793df902ebe451d2ce0be0859d"
+}

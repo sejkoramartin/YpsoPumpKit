@@ -1,0 +1,17 @@
+YpsoPumpKit prototype — 2026, simulator-only research.
+New Swift sources are licensed under the MIT license (see LICENSE).
+
+Protocol facts and offline fixture cross-checks:
+- SandraK82/ypsopump-research, MIT, copyright 2026 YpsoPump Research Contributors.
+- alex-poor/ypsopump-research PR #1/#2, MIT, attribution retained in Documentation/Research/INVENTORY.md.
+- Uneo7/Ypso: crc.py read and run locally only to calculate expected checksums.
+  Its source is not distributed within this Swift package; verify licensing before reuse.
+- vicktor/ypsomed-pump: AGPL-3.0; used for comparative research, not copied or linked into
+  this Swift package. Do not assume its SDK can be redistributed under this package's MIT.
+- Baz00k/AndroidAPS and alex-poor/AndroidAPS: AGPL-3.0; researched protocol facts and
+  architecture only. No Android implementation is copied or linked into the MIT package.
+- Loop / LoopKit / Trio retain their own licenses. They are separate upstream checkouts.
+
+No vendor SDK, vendor secrets, real pump keys or captured patient data are included in
+this package. All Swift status fixtures are synthetic. No endorsement by Ypsomed,
+CamDiab, LoopKit, Trio or the cited researchers is implied.
