@@ -28,6 +28,7 @@ jobs:
             -destination 'generic/platform=iOS Simulator' \
             -derivedDataPath "$RUNNER_TEMP/LoopDerivedData" \
             -resultBundlePath "$RUNNER_TEMP/LoopBuild.xcresult" \
+            IPHONEOS_DEPLOYMENT_TARGET=16.0 \
             CODE_SIGNING_ALLOWED=NO build 2>&1 | tee "$RUNNER_TEMP/loop-build.log"
       - name: Save build diagnostics
         if: always()

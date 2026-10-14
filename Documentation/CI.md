@@ -1,5 +1,7 @@
 # GitHub Actions bez vlastního Macu
 
+Experimentální sestavení Loopu používá `IPHONEOS_DEPLOYMENT_TARGET=16.0`, aby odpovídalo minimální verzi iOS balíčku YpsoPumpKit. Původní upstream minimum 15.1 nelze s tímto balíčkem použít; první běh CI na tomto nesouladu selhal.
+
 V repozitáři otevřete **Actions**. Automatický workflow **Swift package CI** spouští testy na Linuxu a macOS a sestavuje knihovnu pro iOS Simulator. Zelený výsledek znamená úspěch uvedených kroků, nikoli funkčnost fyzické pumpy.
 
 Pro Loop zvolte **Loop simulator build → Run workflow → main**. Běh stáhne veřejný LoopWorkspace na commitu `548b33245198eaae165c094c9c68fe333cb69c05`, inicializuje jeho závislosti a aplikuje `Integration/Loop/simulator.patch`. Očekávaný Loop commit je `c30b5c89b1dc4151628f33f1384dd4796eaeeec2`.
