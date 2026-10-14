@@ -45,4 +45,13 @@ Uživatel má placený Apple Developer účet. Stále zbývá registrace identif
 - Samostatný balíček prošel 19 XCTest testy na Ubuntu a CI balíčku na Linuxu/macOS.
 - Podepsané sestavení pro iPhone ani upload do TestFlight zatím neproběhly.
 
-Novější úpravy izolace pro iPhone vyžadují nový běh CI; historický výsledek níže/výše se vztahuje pouze ke svému uvedenému commitu.
+## Ověření přípravy pro iPhone — commit 5b195d9
+
+- [Simulátorový běh 38633729946](https://github.com/sejkoramartin/YpsoPumpKit/actions/runs/38633729946): 4 Swift Testing testy ve 2 sadách prošly. Ověřují katalog a obnovu, syntetický stav, offline Bluetooth provider a odmítnutí bolusu i dočasného bazálu v MockPumpManager.
+- [Nepodepsaný Release build 38633734547](https://github.com/sejkoramartin/YpsoPumpKit/actions/runs/38633734547): `BUILD SUCCEEDED` pro `generic/platform=iOS` na Xcode 26.5. Nejde o podepsanou nebo instalovatelnou IPA.
+- Spuštění v iOS Simulatoru a snímek úvodní obrazovky byly ověřeny: zobrazuje se **Ypso Trio — SIMULATION ONLY**.
+- Blokování Apple Health je kontrolováno ve zdroji, nikoli samostatným runtime testem zápisu do zdravotního úložiště.
+- Celý onboarding, skutečné spuštění na iPhonu, podpis, provisioning a TestFlight upload zatím ověřeny nejsou.
+- První novější běh odhalil chybějící společný `SystemAlert` po nahrazení Bluetooth obrazovky; opravná revize jej zachovává pro oznámení bez obnovy Bluetooth autorizace.
+
+Generátor podpisové identity byl ověřen lokálně na syntetickém Team ID: hlavní Config.xcconfig a override obsahují shodné Bundle ID a App Group. Neplatné Team ID a přepsání již existujícího výstupu odmítá. Tento test neověřuje registraci ani dostupnost ID u Apple.
