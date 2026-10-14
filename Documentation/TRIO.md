@@ -30,7 +30,7 @@ Konfiguraci pro budoucí podpis lze připravit pomocí:
 APPLE_TEAM_ID=YOURTEAMID python3 Scripts/write-trio-signing-config.py /tmp/ConfigOverride.xcconfig
 ```
 
-Skript vyžaduje desetiznakové Team ID, odmítá přepsat existující soubor a pouze vytvoří konfiguraci. Nic neregistruje u Apple. Bundle ID má tvar `org.ypsopumpkit.TEAMID.trio.sim`, app group `group.org.ypsopumpkit.TEAMID.trio.sim` a název **Ypso Trio SIM**. Konfigurace patří až do samostatného checkoutu, nikoli do běžné instalace Tria.
+Skript vyžaduje desetiznakové Team ID, odmítá přepsat existující výstupní soubor a pouze vytvoří konfiguraci. S volbou `--checkout /cesta/k/cerstvemu/Trio` sjednotí také hlavní Config.xcconfig a jeho override, protože Fastlane čte hlavní soubor přímo. Tato volba odmítá dříve přizpůsobenou identitu a je určena pouze pro čerstvý checkout připravený naším skriptem. Nic neregistruje u Apple. Bundle ID má tvar `org.ypsopumpkit.TEAMID.trio.sim`, app group `group.org.ypsopumpkit.TEAMID.trio.sim` a název **Ypso Trio SIM**. Konfigurace patří až do samostatného checkoutu, nikoli do běžné instalace Tria.
 
 Uživatel má placený Apple Developer účet. Stále zbývá registrace identifikátorů, App Store Connect záznam, distribuční certifikát a provisioning profiles. Soukromé klíče patří do GitHub Secrets, nikoli do chatu nebo zdrojů. Podepsaný build a upload nejsou v tomto kroku prováděny. Celý onboarding a chování na fyzickém iPhonu se musí ještě ověřit; nesmí se přitom připojit skutečná pumpa. CamAPS FX ani nastavení pumpy se nemění.
 
