@@ -13,6 +13,7 @@ jobs:
     timeout-minutes: 90
     env:
       APPLE_TEAM_ID: ${{ vars.APPLE_TEAM_ID }}
+      DISTRIBUTION_IDENTITY: ${{ vars.DISTRIBUTION_IDENTITY || 'Apple Distribution' }}
     steps:
       - uses: actions/checkout@d23441a48e516b6c34aea4fa41551a30e30af803
         with:

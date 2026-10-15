@@ -9,6 +9,8 @@ It never creates, renews or revokes Apple certificates. There is no Match depend
 ## Required configuration
 
 Repository variable `APPLE_TEAM_ID`: your ten-character developer team ID.
+Optional `DISTRIBUTION_IDENTITY`: `Apple Distribution` (default), or
+`iPhone Distribution` when using an iOS Distribution certificate.
 
 Repository secrets:
 

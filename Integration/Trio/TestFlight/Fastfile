@@ -5,6 +5,8 @@ platform :ios do
   lane :simulator_testflight do
     team = ENV.fetch('APPLE_TEAM_ID')
     UI.user_error!('Invalid team') unless team.match?(/\A[A-Z0-9]{10}\z/)
+    identity = ENV.fetch('DISTRIBUTION_IDENTITY', 'Apple Distribution')
+    UI.user_error!('Invalid distribution identity') unless ['Apple Distribution', 'iPhone Distribution'].include?(identity)
     bundle = "org.ypsopumpkit.#{team}.trio.sim"
     checkout = ENV.fetch('TRIO_CHECKOUT')
     mapping = JSON.parse(File.read("#{ENV.fetch('RUNNER_TEMP')}/ypso-signing/profiles.json"))
@@ -18,7 +20,7 @@ platform :ios do
       UI.user_error!("Missing target #{name}") unless target
       target.build_configurations.each do |config|
         config.build_settings['CODE_SIGN_STYLE'] = 'Manual'
-        config.build_settings['CODE_SIGN_IDENTITY'] = 'Apple Distribution'
+        config.build_settings['CODE_SIGN_IDENTITY'] = identity
         config.build_settings['DEVELOPMENT_TEAM'] = team
         config.build_settings['PROVISIONING_PROFILE_SPECIFIER'] = mapping.fetch(bundle+suffix)
       end
