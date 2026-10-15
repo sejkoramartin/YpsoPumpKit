@@ -37,3 +37,12 @@ jobs:
           -destination 'generic/platform=iOS Simulator'
           -derivedDataPath "$RUNNER_TEMP/YpsoDerivedData"
           CODE_SIGNING_ALLOWED=NO build
+  signing-tools:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 5
+    steps:
+      - uses: actions/checkout@d23441a48e516b6c34aea4fa41551a30e30af803
+        with:
+          persist-credentials: false
+      - run: python3 Scripts/test-signing-assets.py
+      - run: ruby -c Integration/Trio/TestFlight/Fastfile

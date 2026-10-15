@@ -1,0 +1,93 @@
+name: Trio simulator TestFlight
+on:
+  workflow_dispatch:
+permissions:
+  contents: read
+concurrency:
+  group: trio-testflight
+  cancel-in-progress: false
+jobs:
+  testflight:
+    if: github.ref == 'refs/heads/main'
+    runs-on: macos-26
+    timeout-minutes: 90
+    env:
+      APPLE_TEAM_ID: ${{ vars.APPLE_TEAM_ID }}
+    steps:
+      - uses: actions/checkout@d23441a48e516b6c34aea4fa41551a30e30af803
+        with:
+          persist-credentials: false
+      - name: Check signing prerequisites
+        env:
+          ASC_KEY_ID: ${{ secrets.ASC_KEY_ID }}
+          ASC_ISSUER_ID: ${{ secrets.ASC_ISSUER_ID }}
+          ASC_PRIVATE_KEY: ${{ secrets.ASC_PRIVATE_KEY }}
+          DISTRIBUTION_P12: ${{ secrets.DISTRIBUTION_P12 }}
+          P12_PASSWORD: ${{ secrets.P12_PASSWORD }}
+          PROFILE_APP: ${{ secrets.PROFILE_APP }}
+          PROFILE_WATCH: ${{ secrets.PROFILE_WATCH }}
+          PROFILE_COMPLICATION: ${{ secrets.PROFILE_COMPLICATION }}
+          PROFILE_ACTIVITY: ${{ secrets.PROFILE_ACTIVITY }}
+        run: |
+          python3 - <<'PY'
+          import os
+          names = 'APPLE_TEAM_ID ASC_KEY_ID ASC_ISSUER_ID ASC_PRIVATE_KEY DISTRIBUTION_P12 P12_PASSWORD PROFILE_APP PROFILE_WATCH PROFILE_COMPLICATION PROFILE_ACTIVITY'.split()
+          missing = [name for name in names if not os.environ.get(name)]
+          if missing:
+              raise SystemExit('Missing signing configuration: ' + ', '.join(missing))
+          PY
+      - name: Select Xcode
+        run: sudo xcode-select --switch /Applications/Xcode_26.5.app/Contents/Developer
+      - name: Prepare isolated simulator checkout
+        run: |
+          bash Scripts/prepare-trio-ci.sh "$RUNNER_TEMP/ypso-trio"
+          python3 Scripts/write-trio-signing-config.py --checkout "$RUNNER_TEMP/ypso-trio/Trio"
+          python3 Scripts/check-trio-isolation.py "$RUNNER_TEMP/ypso-trio/Trio"
+      - name: Install pinned build tools
+        run: |
+          brew list ruby@3.4 >/dev/null 2>&1 || brew install ruby@3.4
+          export PATH="$(brew --prefix ruby@3.4)/bin:$PATH"
+          echo "$(brew --prefix ruby@3.4)/bin" >> "$GITHUB_PATH"
+          gem install bundler -v 4.0.12 --no-document
+          gem_bin="$(ruby -r rubygems -e 'puts Gem.bindir')"
+          export PATH="$gem_bin:$PATH"
+          echo "$gem_bin" >> "$GITHUB_PATH"
+          cd "$RUNNER_TEMP/ypso-trio/Trio"
+          bundle config set --local path "$RUNNER_TEMP/ypso-gems"
+          bundle install
+          cp "$GITHUB_WORKSPACE/Integration/Trio/TestFlight/Fastfile" fastlane/Fastfile
+      - name: Install signing assets into temporary keychain
+        env:
+          DISTRIBUTION_P12: ${{ secrets.DISTRIBUTION_P12 }}
+          P12_PASSWORD: ${{ secrets.P12_PASSWORD }}
+          PROFILE_APP: ${{ secrets.PROFILE_APP }}
+          PROFILE_WATCH: ${{ secrets.PROFILE_WATCH }}
+          PROFILE_COMPLICATION: ${{ secrets.PROFILE_COMPLICATION }}
+          PROFILE_ACTIVITY: ${{ secrets.PROFILE_ACTIVITY }}
+        run: |
+          set -euo pipefail
+          python3 Scripts/prepare-trio-signing-assets.py
+          password="$(openssl rand -hex 32)"
+          echo "::add-mask::$password"
+          keychain="$RUNNER_TEMP/ypso-signing/build.keychain-db"
+          security create-keychain -p "$password" "$keychain"
+          security set-keychain-settings -lut 21600 "$keychain"
+          security unlock-keychain -p "$password" "$keychain"
+          security import "$RUNNER_TEMP/ypso-signing/certificate.p12" -P "$P12_PASSWORD" -A -t cert -f pkcs12 -k "$keychain"
+          security set-key-partition-list -S apple-tool:,apple:,codesign: -k "$password" "$keychain"
+          security list-keychains -d user -s "$keychain" "$HOME/Library/Keychains/login.keychain-db"
+      - name: Archive and upload simulator to TestFlight
+        env:
+          ASC_KEY_ID: ${{ secrets.ASC_KEY_ID }}
+          ASC_ISSUER_ID: ${{ secrets.ASC_ISSUER_ID }}
+          ASC_PRIVATE_KEY: ${{ secrets.ASC_PRIVATE_KEY }}
+          FASTLANE_SKIP_UPDATE_CHECK: '1'
+        run: |
+          export TRIO_CHECKOUT="$RUNNER_TEMP/ypso-trio/Trio"
+          cd "$TRIO_CHECKOUT"
+          bundle exec fastlane ios simulator_testflight
+      - name: Remove temporary signing assets
+        if: always()
+        run: |
+          security delete-keychain "$RUNNER_TEMP/ypso-signing/build.keychain-db" 2>/dev/null || true
+          rm -rf "$RUNNER_TEMP/ypso-signing" "$RUNNER_TEMP/ypso-output"

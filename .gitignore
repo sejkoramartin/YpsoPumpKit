@@ -7,3 +7,7 @@ DerivedData/
 .env
 *.p12
 *.mobileprovision
+*.p8
+*.key
+*.csr
+__pycache__/
