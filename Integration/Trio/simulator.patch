@@ -342,6 +342,40 @@ index 92f0b0a..2e6b853 100644
      }
  
      private func glucoseStoreAndHeartDecision(syncDate: Date, glucose: [BloodGlucose]) async throws {
+diff --git a/Trio/Sources/Modules/CGMSettings/View/CGMRootView.swift b/Trio/Sources/Modules/CGMSettings/View/CGMRootView.swift
+index 8c6b292..8e962f3 100644
+--- a/Trio/Sources/Modules/CGMSettings/View/CGMRootView.swift
++++ b/Trio/Sources/Modules/CGMSettings/View/CGMRootView.swift
+@@ -25,7 +25,7 @@ extension CGMSettings {
+                 Section(
+                     header: Text("CGM Integration to Trio"),
+                     content: {
+-                        if bluetoothManager.bluetoothAuthorization != .authorized {
++                        if !YpsoTrioSimulationPolicy.isEnabled, bluetoothManager.bluetoothAuthorization != .authorized {
+                             HStack {
+                                 Spacer()
+                                 BluetoothRequiredView()
+diff --git a/Trio/Sources/Modules/Home/View/HomeRootView.swift b/Trio/Sources/Modules/Home/View/HomeRootView.swift
+index e84cac5..0c8c32c 100644
+--- a/Trio/Sources/Modules/Home/View/HomeRootView.swift
++++ b/Trio/Sources/Modules/Home/View/HomeRootView.swift
+@@ -224,8 +224,15 @@ extension Home {
+ 
+         @ViewBuilder private func dashboardContent(_ geo: GeometryProxy) -> some View {
+             VStack(spacing: 0) {
++                if YpsoTrioSimulationPolicy.isEnabled {
++                    Text("Ypso Trio SIM · SIMULATION ONLY")
++                        .font(.caption.bold())
++                        .foregroundStyle(.orange)
++                        .padding(.vertical, 4)
++                }
+                 ZStack {
+-                    if let apsManager = state.apsManager, let bluetoothManager = apsManager.bluetoothManager,
++                    if !YpsoTrioSimulationPolicy.isEnabled,
++                       let apsManager = state.apsManager, let bluetoothManager = apsManager.bluetoothManager,
+                        bluetoothManager.bluetoothAuthorization != .authorized
+                     {
+                         BluetoothRequiredView()
 diff --git a/Trio/Sources/Modules/Onboarding/View/OnboardingRootView.swift b/Trio/Sources/Modules/Onboarding/View/OnboardingRootView.swift
 index c8a3ff2..d202f95 100644
 --- a/Trio/Sources/Modules/Onboarding/View/OnboardingRootView.swift
@@ -530,6 +564,19 @@ index d144217..13b5046 100644
                      .multilineTextAlignment(.leading)
                      .foregroundColor(.primary)
                      .bold()
+diff --git a/Trio/Sources/Modules/PumpConfig/View/PumpConfigRootView.swift b/Trio/Sources/Modules/PumpConfig/View/PumpConfigRootView.swift
+index 5404c78..5984856 100644
+--- a/Trio/Sources/Modules/PumpConfig/View/PumpConfigRootView.swift
++++ b/Trio/Sources/Modules/PumpConfig/View/PumpConfigRootView.swift
+@@ -24,7 +24,7 @@ extension PumpConfig {
+                 Section(
+                     header: Text("Pump Integration to Trio"),
+                     content: {
+-                        if bluetoothManager.bluetoothAuthorization != .authorized {
++                        if !YpsoTrioSimulationPolicy.isEnabled, bluetoothManager.bluetoothAuthorization != .authorized {
+                             HStack {
+                                 Spacer()
+                                 BluetoothRequiredView()
 diff --git a/Trio/Sources/Services/Bluetooth/BluetoothStateManager.swift b/Trio/Sources/Services/Bluetooth/BluetoothStateManager.swift
 index 2e30f21..81bbdde 100644
 --- a/Trio/Sources/Services/Bluetooth/BluetoothStateManager.swift
