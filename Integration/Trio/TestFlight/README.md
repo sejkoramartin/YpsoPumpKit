@@ -41,8 +41,9 @@ The unsigned iPhone Release and simulator integration checks passed. On
 2026-10-15, the first signed archive, IPA export, and upload to App Store Connect
 [completed successfully](https://github.com/sejkoramartin/YpsoPumpKit/actions/runs/38795021261)
 using an iOS Distribution certificate. Linux/macOS package tests and signing-tool
-checks also passed for that source revision. Apple processing and installation on
-a physical iPhone are separate checks; upload success does not establish either.
+checks also passed for that source revision. Apple subsequently marked build
+`1.0.2 (1)` valid, and the internal TestFlight group shows `Testing`.
+Installation and launch on a physical iPhone remain to be checked by the tester.
 
 Run `python3 Scripts/test-signing-assets.py` and
 `ruby -c Integration/Trio/TestFlight/Fastfile` for tool checks. These do not replace
