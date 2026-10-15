@@ -37,9 +37,15 @@ The workflow cannot succeed until all signing prerequisites are supplied.
 
 ## Validation status
 
-The prior unsigned iPhone Release and simulator integration checks passed.
-This signing/upload workflow is new: local profile validation tests pass; a signed
-archive, Apple upload validation and TestFlight processing remain unverified until
-signing assets are available. Run `python3 Scripts/test-signing-assets.py` and
+The unsigned iPhone Release and simulator integration checks passed. On
+2026-10-15, the first signed archive, IPA export, and upload to App Store Connect
+[completed successfully](https://github.com/sejkoramartin/YpsoPumpKit/actions/runs/38795021261)
+using an iOS Distribution certificate. Linux/macOS package tests and signing-tool
+checks also passed for that source revision. Apple processing and installation on
+a physical iPhone are separate checks; upload success does not establish either.
+
+Run `python3 Scripts/test-signing-assets.py` and
 `ruby -c Integration/Trio/TestFlight/Fastfile` for tool checks. These do not replace
-an actual signed archive and upload.
+an actual signed archive and upload. The bundled Watch targets need signing
+profiles even when testing only on an iPhone; an Apple Watch is not required for
+the iPhone app.
