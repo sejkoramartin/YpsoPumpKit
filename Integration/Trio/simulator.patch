@@ -69,6 +69,353 @@ index e6f6b54..286095d 100644
  		3811DE0F25C9D37700A708ED /* Swinject */ = {
  			isa = XCSwiftPackageProductDependency;
  			package = 3811DE0E25C9D37700A708ED /* XCRemoteSwiftPackageReference "Swinject" */;
+diff --git a/Trio/Resources/Info.plist b/Trio/Resources/Info.plist
+index 56f7791..c2f0edd 100644
+--- a/Trio/Resources/Info.plist
++++ b/Trio/Resources/Info.plist
+@@ -72,9 +72,9 @@
+ 		<true/>
+ 	</dict>
+ 	<key>NSBluetoothAlwaysUsageDescription</key>
+-	<string>Bluetooth is used to communicate with insulin pump and continuous glucose monitor devices</string>
++	<string>Bluetooth is used only to search nearby BLE advertisements in the diagnostic screen. This test app does not connect to or control your pump.</string>
+ 	<key>NSBluetoothPeripheralUsageDescription</key>
+-	<string>Bluetooth is used to communicate with insulin pump and continuous glucose monitor devices</string>
++	<string>Bluetooth is used only to search nearby BLE advertisements in the diagnostic screen. This test app does not connect to or control your pump.</string>
+ 	<key>NSCalendarsFullAccessUsageDescription</key>
+ 	<string>To create events with glucose values, so they can be viewed on Apple Watch and CarPlay</string>
+ 	<key>NSCalendarsUsageDescription</key>
+diff --git a/Trio/Resources/InfoPlist.xcstrings b/Trio/Resources/InfoPlist.xcstrings
+index fbf2be8..340a45b 100644
+--- a/Trio/Resources/InfoPlist.xcstrings
++++ b/Trio/Resources/InfoPlist.xcstrings
+@@ -560,133 +560,133 @@
+         "bg" : {
+           "stringUnit" : {
+             "state" : "translated",
+-            "value" : "Bluetooth се използва за комуникация с инсулинова помпа и CGM устройства"
++            "value" : "Bluetooth is used only to search nearby BLE advertisements in the diagnostic screen. This test app does not connect to or control your pump."
+           }
+         },
+         "cs" : {
+           "stringUnit" : {
+             "state" : "translated",
+-            "value" : "Bluetooth se používá ke komunikaci s inzulínovou pumpou a zařízeními pro kontinuální monitorování glykémie."
++            "value" : "Bluetooth is used only to search nearby BLE advertisements in the diagnostic screen. This test app does not connect to or control your pump."
+           }
+         },
+         "da" : {
+           "stringUnit" : {
+             "state" : "new",
+-            "value" : "Bluetooth is used to communicate with insulin pump and continuous glucose monitor devices"
++            "value" : "Bluetooth is used only to search nearby BLE advertisements in the diagnostic screen. This test app does not connect to or control your pump."
+           }
+         },
+         "de" : {
+           "stringUnit" : {
+             "state" : "translated",
+-            "value" : "Bluetooth wird verwendet, um mit Insulinpumpen und CGMs zu kommunizieren"
++            "value" : "Bluetooth is used only to search nearby BLE advertisements in the diagnostic screen. This test app does not connect to or control your pump."
+           }
+         },
+         "en" : {
+           "stringUnit" : {
+             "state" : "new",
+-            "value" : "Bluetooth is used to communicate with insulin pump and continuous glucose monitor devices"
++            "value" : "Bluetooth is used only to search nearby BLE advertisements in the diagnostic screen. This test app does not connect to or control your pump."
+           }
+         },
+         "es" : {
+           "stringUnit" : {
+             "state" : "new",
+-            "value" : "Bluetooth is used to communicate with insulin pump and continuous glucose monitor devices"
++            "value" : "Bluetooth is used only to search nearby BLE advertisements in the diagnostic screen. This test app does not connect to or control your pump."
+           }
+         },
+         "fr" : {
+           "stringUnit" : {
+             "state" : "translated",
+-            "value" : "Le Bluetooth est utilisé pour communiquer avec les pompes à insuline et les Capteurs de Glucose en Continu (CGM)"
++            "value" : "Bluetooth is used only to search nearby BLE advertisements in the diagnostic screen. This test app does not connect to or control your pump."
+           }
+         },
+         "he" : {
+           "stringUnit" : {
+             "state" : "new",
+-            "value" : "Bluetooth is used to communicate with insulin pump and continuous glucose monitor devices"
++            "value" : "Bluetooth is used only to search nearby BLE advertisements in the diagnostic screen. This test app does not connect to or control your pump."
+           }
+         },
+         "it" : {
+           "stringUnit" : {
+             "state" : "translated",
+-            "value" : "Il Bluetooth viene utilizzato per comunicare con il microinfusore e i dispositivi di monitoraggio continuo del glucosio"
++            "value" : "Bluetooth is used only to search nearby BLE advertisements in the diagnostic screen. This test app does not connect to or control your pump."
+           }
+         },
+         "ko" : {
+           "stringUnit" : {
+             "state" : "translated",
+-            "value" : "인슐린 펌프 및 연속혈당측정기(CGM)와 통신하기 위해 블루투스가 사용됩니다."
++            "value" : "Bluetooth is used only to search nearby BLE advertisements in the diagnostic screen. This test app does not connect to or control your pump."
+           }
+         },
+         "nb-NO" : {
+           "stringUnit" : {
+             "state" : "translated",
+-            "value" : "Bluetooth brukes til å kommunisere med insulinpumpe og CGM"
++            "value" : "Bluetooth is used only to search nearby BLE advertisements in the diagnostic screen. This test app does not connect to or control your pump."
+           }
+         },
+         "nl" : {
+           "stringUnit" : {
+             "state" : "translated",
+-            "value" : "Bluetooth wordt gebruikt om te communiceren met de insuline pomp en de continue glucose meter"
++            "value" : "Bluetooth is used only to search nearby BLE advertisements in the diagnostic screen. This test app does not connect to or control your pump."
+           }
+         },
+         "pl" : {
+           "stringUnit" : {
+             "state" : "translated",
+-            "value" : "Bluetooth jest używany do komunikacji z pompą insulinową i urządzeniami do ciągłego monitorowania glikemii"
++            "value" : "Bluetooth is used only to search nearby BLE advertisements in the diagnostic screen. This test app does not connect to or control your pump."
+           }
+         },
+         "pt-PT" : {
+           "stringUnit" : {
+             "state" : "new",
+-            "value" : "Bluetooth is used to communicate with insulin pump and continuous glucose monitor devices"
++            "value" : "Bluetooth is used only to search nearby BLE advertisements in the diagnostic screen. This test app does not connect to or control your pump."
+           }
+         },
+         "ro" : {
+           "stringUnit" : {
+             "state" : "new",
+-            "value" : "Bluetooth is used to communicate with insulin pump and continuous glucose monitor devices"
++            "value" : "Bluetooth is used only to search nearby BLE advertisements in the diagnostic screen. This test app does not connect to or control your pump."
+           }
+         },
+         "ru" : {
+           "stringUnit" : {
+             "state" : "new",
+-            "value" : "Bluetooth is used to communicate with insulin pump and continuous glucose monitor devices"
++            "value" : "Bluetooth is used only to search nearby BLE advertisements in the diagnostic screen. This test app does not connect to or control your pump."
+           }
+         },
+         "sv" : {
+           "stringUnit" : {
+             "state" : "new",
+-            "value" : "Bluetooth is used to communicate with insulin pump and continuous glucose monitor devices"
++            "value" : "Bluetooth is used only to search nearby BLE advertisements in the diagnostic screen. This test app does not connect to or control your pump."
+           }
+         },
+         "tr" : {
+           "stringUnit" : {
+             "state" : "new",
+-            "value" : "Bluetooth is used to communicate with insulin pump and continuous glucose monitor devices"
++            "value" : "Bluetooth is used only to search nearby BLE advertisements in the diagnostic screen. This test app does not connect to or control your pump."
+           }
+         },
+         "uk" : {
+           "stringUnit" : {
+             "state" : "new",
+-            "value" : "Bluetooth is used to communicate with insulin pump and continuous glucose monitor devices"
++            "value" : "Bluetooth is used only to search nearby BLE advertisements in the diagnostic screen. This test app does not connect to or control your pump."
+           }
+         },
+         "vi" : {
+           "stringUnit" : {
+             "state" : "translated",
+-            "value" : "Bluetooth được sử dụng để liên lạc với máy bơm insulin và các thiết bị theo dõi đường huyết liên tục"
++            "value" : "Bluetooth is used only to search nearby BLE advertisements in the diagnostic screen. This test app does not connect to or control your pump."
+           }
+         },
+         "zh-Hans" : {
+           "stringUnit" : {
+             "state" : "translated",
+-            "value" : "蓝牙用于与胰岛素泵和动态血糖仪设备进行通信"
++            "value" : "Bluetooth is used only to search nearby BLE advertisements in the diagnostic screen. This test app does not connect to or control your pump."
+           }
+         },
+         "zh-Hant" : {
+           "stringUnit" : {
+             "state" : "translated",
+-            "value" : "藍牙用於與胰島素幫浦及連續血糖監測裝置通訊"
++            "value" : "Bluetooth is used only to search nearby BLE advertisements in the diagnostic screen. This test app does not connect to or control your pump."
+           }
+         }
+       }
+@@ -698,133 +698,133 @@
+         "bg" : {
+           "stringUnit" : {
+             "state" : "translated",
+-            "value" : "Bluetooth се използва за комуникация с инсулинова помпа и CGM устройства"
++            "value" : "Bluetooth is used only to search nearby BLE advertisements in the diagnostic screen. This test app does not connect to or control your pump."
+           }
+         },
+         "cs" : {
+           "stringUnit" : {
+             "state" : "translated",
+-            "value" : "Bluetooth se používá ke komunikaci s inzulínovou pumpou a zařízeními pro kontinuální monitorování glykémie."
++            "value" : "Bluetooth is used only to search nearby BLE advertisements in the diagnostic screen. This test app does not connect to or control your pump."
+           }
+         },
+         "da" : {
+           "stringUnit" : {
+             "state" : "new",
+-            "value" : "Bluetooth is used to communicate with insulin pump and continuous glucose monitor devices"
++            "value" : "Bluetooth is used only to search nearby BLE advertisements in the diagnostic screen. This test app does not connect to or control your pump."
+           }
+         },
+         "de" : {
+           "stringUnit" : {
+             "state" : "translated",
+-            "value" : "Bluetooth wird verwendet, um mit Insulinpumpen und CGM zu kommunizieren"
++            "value" : "Bluetooth is used only to search nearby BLE advertisements in the diagnostic screen. This test app does not connect to or control your pump."
+           }
+         },
+         "en" : {
+           "stringUnit" : {
+             "state" : "new",
+-            "value" : "Bluetooth is used to communicate with insulin pump and continuous glucose monitor devices"
++            "value" : "Bluetooth is used only to search nearby BLE advertisements in the diagnostic screen. This test app does not connect to or control your pump."
+           }
+         },
+         "es" : {
+           "stringUnit" : {
+             "state" : "new",
+-            "value" : "Bluetooth is used to communicate with insulin pump and continuous glucose monitor devices"
++            "value" : "Bluetooth is used only to search nearby BLE advertisements in the diagnostic screen. This test app does not connect to or control your pump."
+           }
+         },
+         "fr" : {
+           "stringUnit" : {
+             "state" : "translated",
+-            "value" : "Le Bluetooth est utilisé pour communiquer avec les pompes à insuline et les Capteurs de Glucose en Continu (CGM)"
++            "value" : "Bluetooth is used only to search nearby BLE advertisements in the diagnostic screen. This test app does not connect to or control your pump."
+           }
+         },
+         "he" : {
+           "stringUnit" : {
+             "state" : "new",
+-            "value" : "Bluetooth is used to communicate with insulin pump and continuous glucose monitor devices"
++            "value" : "Bluetooth is used only to search nearby BLE advertisements in the diagnostic screen. This test app does not connect to or control your pump."
+           }
+         },
+         "it" : {
+           "stringUnit" : {
+             "state" : "translated",
+-            "value" : "Il Bluetooth viene utilizzato per comunicare con il microinfusore e i dispositivi di monitoraggio continuo del glucosio"
++            "value" : "Bluetooth is used only to search nearby BLE advertisements in the diagnostic screen. This test app does not connect to or control your pump."
+           }
+         },
+         "ko" : {
+           "stringUnit" : {
+             "state" : "translated",
+-            "value" : "인슐린 펌프 및 연속혈당측정기(CGM)와 통신하기 위해 블루투스가 사용됩니다."
++            "value" : "Bluetooth is used only to search nearby BLE advertisements in the diagnostic screen. This test app does not connect to or control your pump."
+           }
+         },
+         "nb-NO" : {
+           "stringUnit" : {
+             "state" : "translated",
+-            "value" : "Bluetooth brukes til å kommunisere med insulinpumpe og CGM"
++            "value" : "Bluetooth is used only to search nearby BLE advertisements in the diagnostic screen. This test app does not connect to or control your pump."
+           }
+         },
+         "nl" : {
+           "stringUnit" : {
+             "state" : "translated",
+-            "value" : "Bluetooth wordt gebruikt om te communiceren met de insuline pomp en de continue glucose meter"
++            "value" : "Bluetooth is used only to search nearby BLE advertisements in the diagnostic screen. This test app does not connect to or control your pump."
+           }
+         },
+         "pl" : {
+           "stringUnit" : {
+             "state" : "translated",
+-            "value" : "Bluetooth jest używany do komunikacji z pompą insulinową i urządzeniami do ciągłego monitorowania glikemii"
++            "value" : "Bluetooth is used only to search nearby BLE advertisements in the diagnostic screen. This test app does not connect to or control your pump."
+           }
+         },
+         "pt-PT" : {
+           "stringUnit" : {
+             "state" : "new",
+-            "value" : "Bluetooth is used to communicate with insulin pump and continuous glucose monitor devices"
++            "value" : "Bluetooth is used only to search nearby BLE advertisements in the diagnostic screen. This test app does not connect to or control your pump."
+           }
+         },
+         "ro" : {
+           "stringUnit" : {
+             "state" : "new",
+-            "value" : "Bluetooth is used to communicate with insulin pump and continuous glucose monitor devices"
++            "value" : "Bluetooth is used only to search nearby BLE advertisements in the diagnostic screen. This test app does not connect to or control your pump."
+           }
+         },
+         "ru" : {
+           "stringUnit" : {
+             "state" : "new",
+-            "value" : "Bluetooth is used to communicate with insulin pump and continuous glucose monitor devices"
++            "value" : "Bluetooth is used only to search nearby BLE advertisements in the diagnostic screen. This test app does not connect to or control your pump."
+           }
+         },
+         "sv" : {
+           "stringUnit" : {
+             "state" : "new",
+-            "value" : "Bluetooth is used to communicate with insulin pump and continuous glucose monitor devices"
++            "value" : "Bluetooth is used only to search nearby BLE advertisements in the diagnostic screen. This test app does not connect to or control your pump."
+           }
+         },
+         "tr" : {
+           "stringUnit" : {
+             "state" : "new",
+-            "value" : "Bluetooth is used to communicate with insulin pump and continuous glucose monitor devices"
++            "value" : "Bluetooth is used only to search nearby BLE advertisements in the diagnostic screen. This test app does not connect to or control your pump."
+           }
+         },
+         "uk" : {
+           "stringUnit" : {
+             "state" : "new",
+-            "value" : "Bluetooth is used to communicate with insulin pump and continuous glucose monitor devices"
++            "value" : "Bluetooth is used only to search nearby BLE advertisements in the diagnostic screen. This test app does not connect to or control your pump."
+           }
+         },
+         "vi" : {
+           "stringUnit" : {
+             "state" : "translated",
+-            "value" : "Bluetooth được sử dụng để liên lạc với máy bơm insulin và các thiết bị theo dõi đường huyết liên tục"
++            "value" : "Bluetooth is used only to search nearby BLE advertisements in the diagnostic screen. This test app does not connect to or control your pump."
+           }
+         },
+         "zh-Hans" : {
+           "stringUnit" : {
+             "state" : "translated",
+-            "value" : "蓝牙用于与胰岛素泵和动态血糖仪设备进行通信"
++            "value" : "Bluetooth is used only to search nearby BLE advertisements in the diagnostic screen. This test app does not connect to or control your pump."
+           }
+         },
+         "zh-Hant" : {
+           "stringUnit" : {
+             "state" : "translated",
+-            "value" : "藍牙用於與胰島素幫浦及連續血糖監測裝置通訊"
++            "value" : "Bluetooth is used only to search nearby BLE advertisements in the diagnostic screen. This test app does not connect to or control your pump."
+           }
+         }
+       }
+diff --git a/Trio/Resources/en.lproj/infoPlist.strings b/Trio/Resources/en.lproj/infoPlist.strings
+index 73ff460..0c7f4ec 100644
+--- a/Trio/Resources/en.lproj/infoPlist.strings
++++ b/Trio/Resources/en.lproj/infoPlist.strings
+@@ -1,8 +1,8 @@
+ 
+ /* Privacy - Bluetooth Always Usage Description */
+-"NSBluetoothAlwaysUsageDescription" = "Bluetooth is used to communicate with insulin pump and continuous glucose monitor devices";
++"NSBluetoothAlwaysUsageDescription" = "Bluetooth is used only to search nearby BLE advertisements in the diagnostic screen. This test app does not connect to or control your pump.";
+ 
+-"NSBluetoothPeripheralUsageDescription" = "Bluetooth is used to communicate with insulin pump and continuous glucose monitor devices";
++"NSBluetoothPeripheralUsageDescription" = "Bluetooth is used only to search nearby BLE advertisements in the diagnostic screen. This test app does not connect to or control your pump.";
+ 
+ /* Privacy - Face ID Usage Description */
+ "NSFaceIDUsageDescription" = "For authorized acces to bolus";
 diff --git a/Trio/Sources/APS/CGM/BluetoothTransmitter.swift b/Trio/Sources/APS/CGM/BluetoothTransmitter.swift
 index 99a2dc6..5cd0750 100644
 --- a/Trio/Sources/APS/CGM/BluetoothTransmitter.swift
@@ -565,10 +912,25 @@ index d144217..13b5046 100644
                      .foregroundColor(.primary)
                      .bold()
 diff --git a/Trio/Sources/Modules/PumpConfig/View/PumpConfigRootView.swift b/Trio/Sources/Modules/PumpConfig/View/PumpConfigRootView.swift
-index 5404c78..5984856 100644
+index 5404c78..879d400 100644
 --- a/Trio/Sources/Modules/PumpConfig/View/PumpConfigRootView.swift
 +++ b/Trio/Sources/Modules/PumpConfig/View/PumpConfigRootView.swift
-@@ -24,7 +24,7 @@ extension PumpConfig {
+@@ -1,3 +1,4 @@
++import CoreBluetooth
+ import SwiftUI
+ import Swinject
+ 
+@@ -21,10 +22,17 @@ extension PumpConfig {
+ 
+         var body: some View {
+             List {
++                if YpsoTrioSimulationPolicy.isEnabled {
++                    Section {
++                        NavigationLink("Hledání YpsoPump přes Bluetooth") {
++                            YpsoAdvertisementSearchView()
++                        }
++                    }
++                }
                  Section(
                      header: Text("Pump Integration to Trio"),
                      content: {
@@ -577,6 +939,147 @@ index 5404c78..5984856 100644
                              HStack {
                                  Spacer()
                                  BluetoothRequiredView()
+@@ -144,3 +152,140 @@ extension PumpConfig {
+         }
+     }
+ }
++
++
++// Diagnostic-only central; intentionally unrelated to Trio's pump transport.
++// Results are advertisements, never authenticated pump identities.
++final class YpsoAdvertisementSearch: NSObject, ObservableObject, CBCentralManagerDelegate {
++    struct Result: Identifiable {
++        let id: UUID
++        let name: String
++        let rssi: Int
++        let candidate: Bool
++    }
++
++    @Published private(set) var results: [Result] = []
++    @Published private(set) var active = false
++    @Published private(set) var status = "Hledání není spuštěné."
++    private var central: CBCentralManager?
++    private var deadline: Timer?
++
++    static func isCandidate(_ name: String) -> Bool {
++        name.range(of: #"^(YpsoPump_|mylife YpsoPump )10[0-9]{6}\z"#,
++                   options: .regularExpression) != nil
++    }
++
++    func start() {
++        guard !active else { return }
++        results = []
++        active = true
++        status = "Čekám na Bluetooth oprávnění a zapnutí rádia…"
++        deadline = Timer.scheduledTimer(withTimeInterval: 30, repeats: false) { [weak self] _ in
++            self?.stop("Čas hledání vypršel. Nenalezení názvu nevylučuje přítomnost pumpy.")
++        }
++        if let central = central {
++            centralManagerDidUpdateState(central)
++        } else {
++            // Created only after the user taps Start, never on screen appearance.
++            central = CBCentralManager(delegate: self, queue: .main,
++                                       options: [CBCentralManagerOptionShowPowerAlertKey: false])
++        }
++    }
++
++    func stop(_ message: String = "Hledání zastaveno.") {
++        central?.stopScan()
++        deadline?.invalidate()
++        deadline = nil
++        active = false
++        status = message
++    }
++
++    func centralManagerDidUpdateState(_ central: CBCentralManager) {
++        guard active else { return }
++        switch central.state {
++        case .poweredOn:
++            guard !central.isScanning else { return }
++            central.scanForPeripherals(withServices: nil,
++                                       options: [CBCentralManagerScanOptionAllowDuplicatesKey: false])
++            status = "Hledám reklamy BLE zařízení, nejvýše 30 sekund…"
++        case .unauthorized:
++            stop("Bluetooth není povolený. Oprávnění lze změnit v nastavení iOS.")
++        case .poweredOff:
++            stop("Bluetooth je vypnutý. Hledání můžeš znovu spustit po jeho zapnutí.")
++        case .unsupported:
++            stop("Toto zařízení nepodporuje BLE hledání.")
++        case .resetting:
++            stop("Bluetooth se restartuje. Hledání bylo ukončeno.")
++        case .unknown:
++            break // The same deadline also bounds waiting for authorization.
++        @unknown default:
++            stop("Neznámý stav Bluetooth; hledání ukončeno.")
++        }
++    }
++
++    func centralManager(_ central: CBCentralManager, didDiscover peripheral: CBPeripheral,
++                        advertisementData: [String: Any], rssi RSSI: NSNumber) {
++        guard active, central.isScanning else { return }
++        // Do not fall back to cached peripheral.name or retain the CBPeripheral.
++        let name = advertisementData[CBAdvertisementDataLocalNameKey] as? String ?? "Bez reklamního názvu"
++        let result = Result(id: peripheral.identifier, name: name,
++                            rssi: RSSI.intValue, candidate: Self.isCandidate(name))
++        if let index = results.firstIndex(where: { $0.id == result.id }) {
++            results[index] = result
++        } else if results.count < 100 {
++            results.append(result)
++        }
++        results.sort {
++            if $0.candidate != $1.candidate { return $0.candidate }
++            return $0.name.localizedStandardCompare($1.name) == .orderedAscending
++        }
++    }
++
++    deinit {
++        deadline?.invalidate()
++        central?.stopScan()
++    }
++}
++
++struct YpsoAdvertisementSearchView: View {
++    @StateObject private var scanner = YpsoAdvertisementSearch()
++    @Environment(\.scenePhase) private var scenePhase
++
++    var body: some View {
++        List {
++            Section {
++                Text("Diagnostika reklam BLE — bez připojení a párování")
++                    .font(.headline)
++                Text("iOS může při hledání vysílat dotazy na reklamní údaje. Nejde o zaručeně pasivní poslech. CamAPS nech běžet; pumpu nepřepínej do párování.")
++                Text("Při výpadku spojení CamAPS hledání zastav. Nalezený název nepotvrzuje identitu pumpy.")
++                    .foregroundStyle(.orange)
++                Button("Spustit hledání na 30 sekund") { scanner.start() }
++                    .disabled(scanner.active)
++                Button("Stop", role: .destructive) { scanner.stop() }
++                    .disabled(!scanner.active)
++                Text(scanner.status)
++            }
++            Section("Zachycená zařízení: \(scanner.results.count)") {
++                ForEach(scanner.results) { result in
++                    VStack(alignment: .leading) {
++                        Text(result.name)
++                        if result.candidate {
++                            Text("Možná YpsoPump — neověřená identita")
++                                .foregroundStyle(.orange)
++                        }
++                        Text(result.rssi == 127 ? "Síla signálu není dostupná" : "Signál: \(result.rssi) dBm")
++                            .font(.caption)
++                    }
++                }
++            }
++            Section {
++                Text("Výsledky se neukládají ani neodesílají. Tento seznam nepřidává skutečnou pumpu do Tria. Léčebný adaptér zůstává simulovaný.")
++            }
++        }
++        .navigationTitle("Hledání YpsoPump")
++        .onDisappear { scanner.stop() }
++        .onChange(of: scenePhase) { _, phase in
++            if phase != .active { scanner.stop("Hledání zastaveno při opuštění aplikace.") }
++        }
++    }
++}
 diff --git a/Trio/Sources/Services/Bluetooth/BluetoothStateManager.swift b/Trio/Sources/Services/Bluetooth/BluetoothStateManager.swift
 index 2e30f21..81bbdde 100644
 --- a/Trio/Sources/Services/Bluetooth/BluetoothStateManager.swift
@@ -804,7 +1307,7 @@ index bc403cd..72766a4 100644
                let sampleType = AppleHealthConfig.healthInsulinObject,
                checkWriteToHealthPermissions(objectTypeToHealthStore: sampleType)
 diff --git a/TrioTests/DeviceCatalogTests.swift b/TrioTests/DeviceCatalogTests.swift
-index d0dfacb..a97fc6b 100644
+index d0dfacb..a9cfbf5 100644
 --- a/TrioTests/DeviceCatalogTests.swift
 +++ b/TrioTests/DeviceCatalogTests.swift
 @@ -1,3 +1,5 @@
@@ -813,12 +1316,28 @@ index d0dfacb..a97fc6b 100644
  import DanaKit
  import Foundation
  import LoopKitUI
-@@ -298,3 +300,58 @@ import UIKit
+@@ -298,3 +300,74 @@ import UIKit
          }
      }
  }
 +
 +@Suite("Ypso simulator isolation") struct YpsoTrioIsolationTests {
++    @Test func advertisementNamesAreOnlyCandidates() {
++        #expect(YpsoAdvertisementSearch.isCandidate("YpsoPump_10123456"))
++        #expect(YpsoAdvertisementSearch.isCandidate("mylife YpsoPump 10123456"))
++        for name in ["", "YpsoPump", "OtherYpsoPump_10123456", "YpsoPump_101234567", "YpsoPump_10123456\\n"] {
++            #expect(!YpsoAdvertisementSearch.isCandidate(name))
++        }
++    }
++    @Test @MainActor func diagnosticDoesNotStartAutomatically() {
++        let search = YpsoAdvertisementSearch()
++        #expect(!search.active)
++        #expect(search.results.isEmpty)
++        search.stop()
++        search.stop()
++        #expect(!search.active)
++    }
++
 +    @Test func onlySimulatorCanBeSelectedOrRestored() {
 +        #expect(DeviceCatalog.pumps.count == 1)
 +        #expect(DeviceCatalog.pumps.first?.manufacturer == .simulator)

@@ -31,3 +31,16 @@ print('Verified offline Bluetooth and HealthKit policy')
 onboarding = (root / 'Trio/Sources/Modules/Onboarding/View/OnboardingSteps/BluetoothPermissionStepView.swift').read_text()
 assert 'struct SystemAlert:' in onboarding  # Also used by notification onboarding.
 assert 'authorizeBluetooth' not in onboarding
+
+# The only authorized real-Bluetooth exception is the user-started advertisement
+# diagnostic. Therapy providers above remain offline.
+diagnostic = (root / 'Trio/Sources/Modules/PumpConfig/View/PumpConfigRootView.swift').read_text()
+assert diagnostic.count('CBCentralManager(delegate:') == 1
+for forbidden in ('.connect(', '.retrievePeripherals(', '.retrieveConnectedPeripherals(',
+                  '.discoverServices(', '.writeValue(', '.readValue(', '.setNotifyValue('):
+    assert forbidden not in diagnostic, forbidden
+assert 'withTimeInterval: 30' in diagnostic
+assert 'if phase != .active' in diagnostic
+assert '.onDisappear { scanner.stop() }' in diagnostic
+assert 'CBAdvertisementDataLocalNameKey' in diagnostic
+print('Verified bounded advertisement-only diagnostic exception')

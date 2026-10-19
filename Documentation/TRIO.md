@@ -55,3 +55,25 @@ Uživatel má placený Apple Developer účet. Stále zbývá registrace identif
 - První novější běh odhalil chybějící společný `SystemAlert` po nahrazení Bluetooth obrazovky; opravná revize jej zachovává pro oznámení bez obnovy Bluetooth autorizace.
 
 Generátor podpisové identity byl ověřen lokálně na syntetickém Team ID: hlavní Config.xcconfig a override obsahují shodné Bundle ID a App Group. Neplatné Team ID a přepsání již existujícího výstupu odmítá. Tento test neověřuje registraci ani dostupnost ID u Apple.
+
+## Advertisement diagnostic — 19 October 2026
+
+The user authorized an iPhone advertisement search, including the limitation that
+CoreBluetooth cannot guarantee radio-passive scanning. Pump Settings now links to
+an isolated diagnostic screen. Only tapping Start creates a CBCentralManager.
+The search ends after 30 seconds, Stop, leaving the screen, or leaving the active
+app state. Permission prompts can interrupt the first attempt; tap Start again
+after granting permission. There is no background restoration or automatic restart.
+
+This is an explicit exception to earlier statements that all Bluetooth is offline.
+The therapy Bluetooth provider, real CGM transmitters, HealthKit guards and
+simulator-only pump catalog remain unchanged. The diagnostic has no connection,
+pairing, GATT or delivery commands. It does not retain CBPeripheral objects.
+Results (up to 100) remain in screen memory only; no export or upload is added.
+
+Local advertisement names matching YpsoPump_10xxxxxx or mylife YpsoPump 10xxxxxx
+are candidates, not authenticated identities. Unnamed advertisements remain visible.
+Name-format evidence: Baz00k/AndroidAPS YpsoPumpScanner.kt at commit
+53c1a66c8b6d4ad899ae8dd240a6de8f30ce6c7e. Matching names does not verify ownership.
+Real iPhone permission, Stop/background behavior and advertisement reception need
+on-device validation; simulator tests cannot establish radio behavior.
