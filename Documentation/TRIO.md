@@ -77,3 +77,21 @@ Name-format evidence: Baz00k/AndroidAPS YpsoPumpScanner.kt at commit
 53c1a66c8b6d4ad899ae8dd240a6de8f30ce6c7e. Matching names does not verify ownership.
 Real iPhone permission, Stop/background behavior and advertisement reception need
 on-device validation; simulator tests cannot establish radio behavior.
+
+## Advertisement details — 24 October 2026
+
+The diagnostic now displays each local iOS identifier (not a MAC), RSSI, latest
+callback time, callback count, advertised/overflow/solicited service UUIDs,
+manufacturer bytes and little-endian company ID, service data, connectability
+advertisement flag and advertised TX power. No GATT discovery is performed.
+Duplicate callbacks are enabled only within the same bounded 30-second session.
+No field other than the existing name pattern labels a Ypso candidate.
+The latest advertised name is retained within the current search when a later
+callback omits it; other details describe only the latest callback. Missing data
+is reported explicitly. Hex display is limited to 96 bytes per field with total
+length shown on truncation. Results remain local and transient; raw fields may
+contain device identifiers, so screenshots should not be posted publicly.
+Two additional synthetic integration tests cover unnamed advertisements,
+manufacturer endian order, short fields, repeated reports and missing metadata.
+Hardware reception, permission dialogs and screen readability still require
+validation on the user's iPhone.

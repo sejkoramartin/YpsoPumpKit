@@ -912,7 +912,7 @@ index d144217..13b5046 100644
                      .foregroundColor(.primary)
                      .bold()
 diff --git a/Trio/Sources/Modules/PumpConfig/View/PumpConfigRootView.swift b/Trio/Sources/Modules/PumpConfig/View/PumpConfigRootView.swift
-index 5404c78..879d400 100644
+index 5404c78..604606b 100644
 --- a/Trio/Sources/Modules/PumpConfig/View/PumpConfigRootView.swift
 +++ b/Trio/Sources/Modules/PumpConfig/View/PumpConfigRootView.swift
 @@ -1,3 +1,4 @@
@@ -939,7 +939,7 @@ index 5404c78..879d400 100644
                              HStack {
                                  Spacer()
                                  BluetoothRequiredView()
-@@ -144,3 +152,140 @@ extension PumpConfig {
+@@ -144,3 +152,201 @@ extension PumpConfig {
          }
      }
  }
@@ -953,6 +953,53 @@ index 5404c78..879d400 100644
 +        let name: String
 +        let rssi: Int
 +        let candidate: Bool
++        let lastSeen: Date
++        let reports: Int
++        let details: [String]
++
++        static func hex(_ data: Data) -> String {
++            let text = data.prefix(96).map { String(format: "%02X", $0) }.joined(separator: " ")
++            return data.count > 96 ? text + " … (\(data.count) B celkem)" : text
++        }
++
++        init(id: UUID, advertisement: [String: Any], rssi: Int, now: Date, previous: Result? = nil) {
++            self.id = id
++            name = advertisement[CBAdvertisementDataLocalNameKey] as? String ?? previous?.name ?? "Bez reklamního názvu"
++            self.rssi = rssi
++            candidate = YpsoAdvertisementSearch.isCandidate(name)
++            lastSeen = now
++            reports = (previous?.reports ?? 0) + 1
++            var fields: [String] = []
++            for (key, label) in [(CBAdvertisementDataServiceUUIDsKey, "Služby"),
++                                 (CBAdvertisementDataOverflowServiceUUIDsKey, "Další služby"),
++                                 (CBAdvertisementDataSolicitedServiceUUIDsKey, "Požadované služby")] {
++                if let values = advertisement[key] as? [CBUUID], !values.isEmpty {
++                    fields.append(label + ": " + values.map { $0.uuidString }.sorted().joined(separator: ", "))
++                }
++            }
++            if let data = advertisement[CBAdvertisementDataManufacturerDataKey] as? Data {
++                if data.count >= 2 {
++                    let bytes = Array(data.prefix(2))
++                    let company = UInt16(bytes[0]) | UInt16(bytes[1]) << 8
++                    fields.append(String(format: "ID výrobce: 0x%04X (neověřuje typ zařízení)", company))
++                }
++                fields.append("Výrobní data: " + Self.hex(data))
++            }
++            if let data = advertisement[CBAdvertisementDataServiceDataKey] as? [CBUUID: Data] {
++                for key in data.keys.sorted(by: { $0.uuidString < $1.uuidString }) {
++                    if let value = data[key] {
++                        fields.append("Data služby " + key.uuidString + ": " + Self.hex(value))
++                    }
++                }
++            }
++            if let connectable = advertisement[CBAdvertisementDataIsConnectable] as? NSNumber {
++                fields.append("Reklama připouští spojení: " + (connectable.boolValue ? "ano" : "ne") + " — nepřipojujeme se")
++            }
++            if let power = advertisement[CBAdvertisementDataTxPowerLevelKey] as? NSNumber {
++                fields.append("Deklarovaný vysílací výkon: \(power.intValue) dBm")
++            }
++            details = fields
++        }
 +    }
 +
 +    @Published private(set) var results: [Result] = []
@@ -997,7 +1044,7 @@ index 5404c78..879d400 100644
 +        case .poweredOn:
 +            guard !central.isScanning else { return }
 +            central.scanForPeripherals(withServices: nil,
-+                                       options: [CBCentralManagerScanOptionAllowDuplicatesKey: false])
++                                       options: [CBCentralManagerScanOptionAllowDuplicatesKey: true])
 +            status = "Hledám reklamy BLE zařízení, nejvýše 30 sekund…"
 +        case .unauthorized:
 +            stop("Bluetooth není povolený. Oprávnění lze změnit v nastavení iOS.")
@@ -1018,9 +1065,9 @@ index 5404c78..879d400 100644
 +                        advertisementData: [String: Any], rssi RSSI: NSNumber) {
 +        guard active, central.isScanning else { return }
 +        // Do not fall back to cached peripheral.name or retain the CBPeripheral.
-+        let name = advertisementData[CBAdvertisementDataLocalNameKey] as? String ?? "Bez reklamního názvu"
-+        let result = Result(id: peripheral.identifier, name: name,
-+                            rssi: RSSI.intValue, candidate: Self.isCandidate(name))
++        let previous = results.first { $0.id == peripheral.identifier }
++        let result = Result(id: peripheral.identifier, advertisement: advertisementData,
++                            rssi: RSSI.intValue, now: Date(), previous: previous)
 +        if let index = results.firstIndex(where: { $0.id == result.id }) {
 +            results[index] = result
 +        } else if results.count < 100 {
@@ -1060,17 +1107,31 @@ index 5404c78..879d400 100644
 +                ForEach(scanner.results) { result in
 +                    VStack(alignment: .leading) {
 +                        Text(result.name)
++                        Text("ID v iOS: " + result.id.uuidString)
++                            .font(.caption.monospaced())
++                        Text("Název je poslední zachycený v tomto hledání; ID není Bluetooth MAC adresa.")
++                            .font(.caption).foregroundStyle(.secondary)
 +                        if result.candidate {
 +                            Text("Možná YpsoPump — neověřená identita")
 +                                .foregroundStyle(.orange)
 +                        }
 +                        Text(result.rssi == 127 ? "Síla signálu není dostupná" : "Signál: \(result.rssi) dBm")
 +                            .font(.caption)
++                        Text("Poslední hlášení: \(result.lastSeen.formatted(date: .omitted, time: .standard)) · Počet: \(result.reports)")
++                            .font(.caption)
++                        DisclosureGroup("Podrobnosti posledního hlášení") {
++                            if result.details.isEmpty {
++                                Text("iOS v tomto hlášení neposkytl služby ani další diagnostické údaje.")
++                            }
++                            ForEach(Array(result.details.enumerated()), id: \.offset) { _, detail in
++                                Text(detail).font(.caption.monospaced()).textSelection(.enabled)
++                            }
++                        }
 +                    }
 +                }
 +            }
 +            Section {
-+                Text("Výsledky se neukládají ani neodesílají. Tento seznam nepřidává skutečnou pumpu do Tria. Léčebný adaptér zůstává simulovaný.")
++                Text("Výrobní a servisní údaje mohou obsahovat identifikátory zařízení; snímky nesdílej veřejně. Výsledky se neukládají ani neodesílají. Tento seznam nepřidává skutečnou pumpu do Tria. Léčebný adaptér zůstává simulovaný.")
 +            }
 +        }
 +        .navigationTitle("Hledání YpsoPump")
@@ -1307,21 +1368,61 @@ index bc403cd..72766a4 100644
                let sampleType = AppleHealthConfig.healthInsulinObject,
                checkWriteToHealthPermissions(objectTypeToHealthStore: sampleType)
 diff --git a/TrioTests/DeviceCatalogTests.swift b/TrioTests/DeviceCatalogTests.swift
-index d0dfacb..a9cfbf5 100644
+index d0dfacb..a3ab29a 100644
 --- a/TrioTests/DeviceCatalogTests.swift
 +++ b/TrioTests/DeviceCatalogTests.swift
-@@ -1,3 +1,5 @@
+@@ -1,5 +1,8 @@
 +import Swinject
 +import MockKit
  import DanaKit
  import Foundation
++import CoreBluetooth
  import LoopKitUI
-@@ -298,3 +300,74 @@ import UIKit
+ import MachO
+ import MedtrumKit
+@@ -298,3 +301,111 @@ import UIKit
          }
      }
  }
 +
 +@Suite("Ypso simulator isolation") struct YpsoTrioIsolationTests {
++    @Test func unnamedAdvertisementExposesDetailsWithoutIdentifyingPump() {
++        let id = UUID()
++        let stamp = Date(timeIntervalSince1970: 100)
++        let value = YpsoAdvertisementSearch.Result(id: id, advertisement: [
++            CBAdvertisementDataServiceUUIDsKey: [CBUUID(string: "180A")],
++            CBAdvertisementDataManufacturerDataKey: Data([0x34, 0x12, 0xAB]),
++            CBAdvertisementDataServiceDataKey: [CBUUID(string: "180F"): Data([0x64])],
++            CBAdvertisementDataIsConnectable: NSNumber(value: true)
++        ], rssi: -60, now: stamp)
++        #expect(!value.candidate)
++        #expect(value.name == "Bez reklamního názvu")
++        #expect(value.details.contains { $0.contains("0x1234") })
++        #expect(value.details.contains { $0.contains("180A") })
++        #expect(value.details.contains { $0.contains("180F: 64") })
++        #expect(value.lastSeen == stamp)
++        #expect(value.reports == 1)
++    }
++
++    @Test func repeatedAdvertisementUpdatesFreshnessWithoutInventingFields() {
++        let id = UUID()
++        let first = YpsoAdvertisementSearch.Result(id: id, advertisement: [
++            CBAdvertisementDataLocalNameKey: "YpsoPump_10123456",
++            CBAdvertisementDataManufacturerDataKey: Data([0x01])
++        ], rssi: -90, now: Date(timeIntervalSince1970: 1))
++        #expect(!first.details.contains { $0.hasPrefix("ID výrobce:") })
++        let next = YpsoAdvertisementSearch.Result(id: id, advertisement: [:], rssi: 127,
++                                                 now: Date(timeIntervalSince1970: 2), previous: first)
++        #expect(next.id == id)
++        #expect(next.name == first.name)
++        #expect(next.candidate)
++        #expect(next.rssi == 127)
++        #expect(next.lastSeen > first.lastSeen)
++        #expect(next.reports == 2)
++        #expect(next.details.isEmpty)
++        #expect(YpsoAdvertisementSearch.Result.hex(Data(repeating: 0xFF, count: 97)).contains("97 B"))
++    }
++
 +    @Test func advertisementNamesAreOnlyCandidates() {
 +        #expect(YpsoAdvertisementSearch.isCandidate("YpsoPump_10123456"))
 +        #expect(YpsoAdvertisementSearch.isCandidate("mylife YpsoPump 10123456"))
