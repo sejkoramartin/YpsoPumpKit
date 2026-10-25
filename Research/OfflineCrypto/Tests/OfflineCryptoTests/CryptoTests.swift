@@ -3,13 +3,13 @@ import Foundation
 import OfflineCrypto
 import YpsoPumpKit
 
-private func hex(_ s: String) -> [UInt8] {
+func hex(_ s: String) -> [UInt8] {
     stride(from: 0, to: s.count, by: 2).map {
         let start = s.index(s.startIndex, offsetBy: $0)
         return UInt8(s[start..<s.index(start, offsetBy: 2)], radix: 16)!
     }
 }
-private struct Fixtures: Decodable {
+struct Fixtures: Decodable {
     struct Vector: Decodable { let name: String; let envelope: String; let body: String; let reboot: UInt32; let counter: UInt64 }
     let key: String
     let vectors: [Vector]

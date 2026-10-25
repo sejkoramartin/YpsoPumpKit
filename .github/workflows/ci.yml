@@ -54,5 +54,6 @@ jobs:
       - uses: actions/checkout@d23441a48e516b6c34aea4fa41551a30e30af803
         with:
           persist-credentials: false
-      - run: apt-get update && apt-get install -y libsodium-dev pkg-config
+      - run: apt-get update && apt-get install -y libsodium-dev libsqlite3-dev pkg-config python3-pycryptodome
       - run: swift test --package-path Research/OfflineCrypto
+      - run: /usr/bin/python3 Research/OfflineCrypto/Tests/verify_fixtures_independently.py

@@ -2,7 +2,7 @@
 
 A separate Swift package for Linux/macOS research; not linked into Trio, the iOS
 app, or the primary Swift package. Requires libsodium development files
-(`apt install libsodium-dev` or `brew install libsodium`). Run:
+and SQLite development files (`apt install libsodium-dev libsqlite3-dev` on Ubuntu). Run:
 
 ```sh
 swift test --package-path Research/OfflineCrypto
@@ -20,7 +20,7 @@ advances its in-memory floor after authenticating a message, even if subsequent
 CRC or status-schema validation fails, and never advances on authentication
 failure. It uses the existing explicit Baz00k V05.00.52 / protocol 1.3 parser.
 
-IMPORTANT: this is not a production session manager. There is no durable journal,
+IMPORTANT: this is not a production session manager. The original `OfflineStatusSession` has no durable journal,
 trusted baseline acquisition, key storage/zeroization guarantee, key renewal,
 identity authentication, write-counter reservation, retries, network or BLE.
 Recreating it with an older baseline permits replay; callers must not interpret
@@ -40,6 +40,43 @@ Sources (format evidence; no AGPL implementation copied):
 - https://doc.libsodium.org/secret-key_cryptography/aead/chacha20-poly1305
 - https://github.com/Baz00k/AndroidAPS/blob/53c1a66c8b6d4ad899ae8dd240a6de8f30ce6c7e/pump/ypsopump/src/main/kotlin/app/aaps/pump/ypsopump/crypto/SessionCrypto.kt
 
-Next: persistent replay journal with failure injection and restart/rollback tests,
-independent published AEAD known-answer vectors, and authenticated fixture evidence
+Next: independent published AEAD known-answer vectors, process-kill/power-loss tests,
+and authenticated fixture evidence
 with documented firmware. Hardware authentication remains out of scope.
+
+
+## Persistent offline session
+
+`PersistentStatusSession` adds a SQLite journal, separate from the original
+in-memory actor. Explicit `initialize(readFloor:)` bootstraps a new journal;
+normal reads never create a missing journal and initialization refuses to reset
+an existing state table. The caller must supply a trusted baseline: this prototype
+cannot acquire one from a pump.
+
+Each accepted response uses BEGIN IMMEDIATE and synchronous=FULL. It reads the
+latest stored floor, checks the synthetic-key SHA-256 fingerprint and reboot epoch,
+then commits the counter before returning a parsed status. CRC/schema failure
+therefore still consumes the authenticated counter. Transaction failure returns
+no status. Counters are decimal text to preserve the full UInt64 range. No keys
+or decrypted status bodies are stored. The database is not encrypted or tamper-proof;
+use only synthetic keys in a private scratch directory.
+
+Tests cover recreation, two stale session instances sharing a journal, injected
+failure between UPDATE and COMMIT, missing/corrupt files, durable consumption of
+bad-CRC messages, full unsigned counters and epoch binding. The injected error is
+not an actual disk-full, failed fsync, process crash or power outage test.
+
+A deliberate snapshot-restore test confirms the remaining limitation: restoring
+an older valid database permits replay. SQLite transaction durability does not
+provide rollback resistance against file replacement, backup restoration or a
+malicious local writer. External trusted monotonic state and a defined recovery
+policy are still needed before any production use. SQLite durability also depends
+on the filesystem and storage honoring synchronization requests.
+
+
+Validation on 25 October 2026: all 14 Swift tests passed on Ubuntu / Swift 6.4.1.
+All six fixed synthetic envelopes also decrypted to the expected plaintext using
+PyCryptodome 3.20.0, an independent implementation; mutated ciphertext was rejected.
+Run `/usr/bin/python3 Research/OfflineCrypto/Tests/verify_fixtures_independently.py`
+after installing `python3-pycryptodome`. CI runs this cross-check as well. These
+remain synthetic fixtures, not published standard vectors or pump captures.
