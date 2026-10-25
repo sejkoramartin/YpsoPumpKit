@@ -1,0 +1,47 @@
+{
+  "key": "000102030405060708090a0b0c0d0e0f101112131415161718191a1b1c1d1e1f",
+  "vectors": [
+    {
+      "name": "first",
+      "envelope": "9dfb3f7f90d68dae334442cecb52a8e84b473b0ffad61deb7e1a3fb63dadf559036edfa6494a7640ef28fefe03097a96000102030405060708090a0b0c0d0e0f1011121314151617",
+      "body": "03393000000400000000640000000000000013aa",
+      "reboot": 7,
+      "counter": 1
+    },
+    {
+      "name": "second",
+      "envelope": "5306d43d28354032760fc2ee679f76af15d9ce7d6bdc96d34339a42dd9d6e39d653ed1a1d6c59f3d08415568d9489f20010102030405060708090a0b0c0d0e0f1011121314151617",
+      "body": "03393000000400000000640000000000000013aa",
+      "reboot": 7,
+      "counter": 2
+    },
+    {
+      "name": "bad_crc",
+      "envelope": "4cdd0ea718bd0760cd36b794164cece1667c0662d49a927855a7a65ef2ff1972d2a30d4537b4a010a619a9729af1986f020102030405060708090a0b0c0d0e0f1011121314151617",
+      "body": "03393000000400000000640000000000000013ab",
+      "reboot": 7,
+      "counter": 3
+    },
+    {
+      "name": "restart",
+      "envelope": "0a9c15557cbf33e62251f4fb40be5c49a0bd76f9baa4792a145b5fffdfd2e6d06a5ee9f9ecbcdeef3f09543e4ca56cc4030102030405060708090a0b0c0d0e0f1011121314151617",
+      "body": "03393000000400000000640000000000000013aa",
+      "reboot": 8,
+      "counter": 4
+    },
+    {
+      "name": "old_reboot",
+      "envelope": "dd2c318fa01459b3458264cd27d1e3d8b68681d709e036973a7578f2f59136199729c0962bf75d7343cc8b743df3d36d040102030405060708090a0b0c0d0e0f1011121314151617",
+      "body": "03393000000400000000640000000000000013aa",
+      "reboot": 6,
+      "counter": 4
+    },
+    {
+      "name": "empty_body",
+      "envelope": "9e044e3844751649f46007a6b6b3465c40ccabfd0830fccd7a2fa5d1050102030405060708090a0b0c0d0e0f1011121314151617",
+      "body": "",
+      "reboot": 7,
+      "counter": 4
+    }
+  ]
+}
