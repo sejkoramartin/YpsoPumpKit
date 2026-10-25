@@ -40,7 +40,7 @@ public actor PersistentStatusSession {
     }
 
     // Internal failure-injection point; no plaintext status escapes before COMMIT.
-    func accept(_ envelope: [UInt8], beforeCommit: @Sendable () throws -> Void) throws -> SystemStatus {
+    package func accept(_ envelope: [UInt8], beforeCommit: @Sendable () throws -> Void, afterCommit: @Sendable () -> Void = {}) throws -> SystemStatus {
         let message = try OfflineResponse.open(envelope, key: key)
         guard message.reboot == epoch else { throw CryptoError.rebootChanged }
         try database(create: false) { db in
@@ -64,6 +64,7 @@ public actor PersistentStatusSession {
                 try execute(db, "COMMIT")
             } catch { try? execute(db, "ROLLBACK"); throw error }
         }
+        afterCommit()
         // Authenticated malformed bodies consume the counter durably too.
         return try SystemStatus.parsePlaintextWithCRC(message.body, profile: .baz00kV050052Protocol13)
     }

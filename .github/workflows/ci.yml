@@ -57,3 +57,8 @@ jobs:
       - run: apt-get update && apt-get install -y libsodium-dev libsqlite3-dev pkg-config python3-pycryptodome
       - run: swift test --package-path Research/OfflineCrypto
       - run: /usr/bin/python3 Research/OfflineCrypto/Tests/verify_fixtures_independently.py
+      - name: Verify process crash recovery
+        run: |
+          swift build --package-path Research/OfflineCrypto --product JournalCrashProbe
+          bin_dir=$(swift build --package-path Research/OfflineCrypto --show-bin-path)
+          /usr/bin/python3 Research/OfflineCrypto/Tests/test_process_crash.py "$bin_dir/JournalCrashProbe"

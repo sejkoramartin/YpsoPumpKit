@@ -8,5 +8,6 @@ let package = Package(
         .systemLibrary(name: "CSodium", pkgConfig: "libsodium", providers: [.apt(["libsodium-dev"]), .brew(["libsodium"])]),
         .systemLibrary(name: "CSQLite", pkgConfig: "sqlite3", providers: [.apt(["libsqlite3-dev"])]),
         .target(name: "OfflineCrypto", dependencies: ["CSodium", "CSQLite", .product(name: "YpsoPumpKit", package: "YpsoPumpKit")]),
+        .executableTarget(name: "JournalCrashProbe", dependencies: ["OfflineCrypto"]),
         .testTarget(name: "OfflineCryptoTests", dependencies: ["OfflineCrypto", "YpsoPumpKit"], resources: [.copy("Fixtures")])
     ])

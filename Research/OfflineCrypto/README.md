@@ -80,3 +80,22 @@ PyCryptodome 3.20.0, an independent implementation; mutated ciphertext was rejec
 Run `/usr/bin/python3 Research/OfflineCrypto/Tests/verify_fixtures_independently.py`
 after installing `python3-pycryptodome`. CI runs this cross-check as well. These
 remain synthetic fixtures, not published standard vectors or pump captures.
+
+
+## Process termination checks
+
+`JournalCrashProbe` is a test executable with a fixed synthetic key. It kills only
+itself using SIGKILL immediately before COMMIT or after successful COMMIT but
+before status parsing/publication. `Tests/test_process_crash.py` reopens the
+journal in a fresh process and asserts recovery and replay behavior. Both scenarios
+passed locally on 25 October 2026; CI runs them too. Run:
+
+```sh
+swift build --package-path Research/OfflineCrypto --product JournalCrashProbe
+bin_dir=$(swift build --package-path Research/OfflineCrypto --show-bin-path)
+python3 Research/OfflineCrypto/Tests/test_process_crash.py "$bin_dir/JournalCrashProbe"
+```
+
+This verifies process death at those two boundaries, not power loss, a kill inside
+SQLite's COMMIT, storage that lies about fsync, or rollback of the database file.
+The package-scoped hooks exist for this harness; they are not public library API.
